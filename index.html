@@ -772,10 +772,64 @@
       opacity: 1;
     }
 
-
     /* Hiệu ứng mờ nhẹ khi di chuột trực tiếp vào chính dấu # */
     .markdown-anchor:hover {
       color: #0550ae !important;
+    }
+
+
+
+    /* ========================================
+    TOC PLUGIN
+    ======================================== */
+    /* Khung bao bọc tổng thể của hộp Mục lục */
+    .table-of-contents {
+      background-color: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 16px 24px;
+      margin-bottom: 24px;
+      /* max-width: 400px; */
+      /* Giới hạn chiều ngang hộp mục lục */
+    }
+
+    /* Tiêu đề tự động sinh ra phía trên mục lục (chữ "Contents") */
+    .table-of-contents::before {
+      content: "📋 Mục lục bài viết";
+      display: block;
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #24292f;
+    }
+
+    /* Cấu trúc cây thư mục danh sách */
+    .toc-list {
+      padding-left: 16px;
+      margin: 0;
+      list-style-type: disc;
+    }
+
+    /* Các mục con lồng nhau (ví dụ h2 lồng trong h1) */
+    .toc-list .toc-list {
+      list-style-type: circle;
+      margin-top: 4px;
+    }
+
+    .toc-item {
+      margin-top: 4px;
+    }
+
+    /* Định dạng đường dẫn liên kết chữ */
+    .toc-link {
+      color: #0969da !important;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    /* Hiệu ứng gạch chân khi người dùng di chuột qua mục lục */
+    .toc-link:hover {
+      text-decoration: underline !important;
     }
   </style>
 </head>
@@ -935,6 +989,7 @@
   <script src="js/markdown-it-task-lists.min.js"></script>
   <script src="js/markdown-it-code-copy.js"></script>
   <script src="js/markdown-it-anchor.umd.js"></script>
+  <script src="js/markdown-it-toc-done-right.umd.js"></script>
 
   <script>
     (function () {
@@ -1060,6 +1115,14 @@
             placement: 'before',       // ĐƯA DẤU # LÊN HIỂN THỊ Ở PHÍA TRƯỚC TIÊU ĐỀ
             space: false                // Tự động tạo khoảng cách nhỏ giữa dấu # và chữ
           })
+        });
+
+        md.use(window.markdownItTocDoneRight, {
+          containerClass: 'table-of-contents', // Tên class thẻ ngoài bọc toàn bộ mục lục
+          listClass: 'toc-list',               // Class của thẻ <ul>/<ol>
+          itemClass: 'toc-item',               // Class của thẻ <li>
+          linkClass: 'toc-link',               // Class của thẻ <a> liên kết
+          listType: 'ul'                       // Định dạng danh sách dạng dấu chấm tròn (hoặc 'ol' nếu muốn đánh số 1,2,3)
         });
       }
 
