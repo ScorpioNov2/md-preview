@@ -8,3 +8,4 @@
 [github.css](https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css)
 [markdown-it-task-lists](https://cdn.jsdelivr.net/npm/markdown-it-task-lists@2.1.0/dist/markdown-it-task-lists.min.js)
 [markdown-it-code-copy](https://cdn.jsdelivr.net/npm/markdown-it-code-copy@0.2.3/index.min.js) [edited export]
+[markdown-it-anchor](https://app.unpkg.com/markdown-it-anchor@9.2.1/files/dist)
