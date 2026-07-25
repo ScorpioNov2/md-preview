@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub Workspace Replica</title>
+  <title>GitHub Markdown Preview</title>
 
   <link rel="stylesheet" href="css/github-markdown.css">
   <link rel="stylesheet" href="css/katex.min.css">
@@ -658,6 +658,77 @@
     #file-picker {
       display: none;
     }
+
+    pre.snippet-clipboard-content {
+      display: flex !important;
+      flex-direction: row !important;
+      justify-content: space-between !important;
+      align-items: flex-start !important;
+      margin: 16px 0 !important;
+      padding: 16px 16px 0 !important;
+      background-color: #f6f8fa !important;
+      border: none !important;
+      border-radius: 6px !important;
+      position: relative;
+      overflow: visible !important;
+    }
+
+    pre.snippet-clipboard-content code {
+      flex: 1 1 auto !important;
+      overflow-x: auto !important;
+      padding-bottom: 16px !important;
+      font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace !important;
+      font-size: 13.6px !important;
+      line-height: 1.5 !important;
+    }
+
+    pre.snippet-clipboard-content .zeroclipboard-container {
+      flex: 0 0 auto !important;
+      margin-bottom: 16px;
+    }
+
+    .ClipboardButton {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #57606a;
+      background: transparent !important;
+      border: none !important;
+      border-radius: 6px;
+      cursor: pointer;
+      outline: none;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out, background-color 0.15s ease, color 0.15s ease;
+    }
+
+    pre.snippet-clipboard-content:hover .ClipboardButton,
+    .ClipboardButton.copied {
+      opacity: 1 !important;
+      transition: opacity 0s, background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .ClipboardButton:hover {
+      background-color: #eaeef2 !important;
+      color: #24292f;
+    }
+
+    .ClipboardButton.copied {
+      color: #1a7f37 !important;
+      background-color: #dafbe1 !important;
+    }
+
+    .ClipboardButton svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .d-none {
+      display: none !important;
+    }
   </style>
 </head>
 
@@ -825,10 +896,6 @@
       /* ====== SVG ICONS ====== */
       var SVG = {
         chevron: '<svg viewBox="0 0 16 16" fill="#57606a"><path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06Z"/></svg>',
-        // folder: '<svg viewBox="0 0 16 16" fill="#54aeff"><path d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1Z"/></svg>',
-        // folderOpen: '<svg viewBox="0 0 16 16" fill="#54aeff"><path d="M.023 2.376A1.75 1.75 0 0 1 1.75 1h3.876a.75.75 0 0 1 .548.238l.924 1.012H14.25A1.75 1.75 0 0 1 16 4v.5a.75.75 0 0 1-1.5 0V4a.25.25 0 0 0-.25-.25H6.5l-.875 1.63a.75.75 0 0 1-.66.41H1.75a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V9a.75.75 0 0 1 1.5 0v5.25A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25V2.75a.75.75 0 0 1 .023-.374Z"/></svg>',
-        // folder: '<svg viewBox="0 0 48 48" fill="#54aeff"><path fill="#54aeff" d="M38,12H22l-4-4H8c-2.2,0-4,1.8-4,4v24c0,2.2,1.8,4,4,4h31c1.7,0,3-1.3,3-3V16C42,13.8,40.2,12,38,12z"/></svg>',
-        // folderOpen: '<svg viewBox="0 0 48 48"><path fill="#2185d0" d="M38,12H22l-4-4H8c-2.2,0-4,1.8-4,4v24c0,2.2,1.8,4,4,4h31c1.7,0,3-1.3,3-3V16C42,13.8,40.2,12,38,12z"/><path fill="#54aeff" d="M42.2,18H15.3c-1.9,0-3.6,1.4-3.9,3.3L8,40h31.7c1.9,0,3.6-1.4,3.9-3.3l2.5-14C46.6,20.3,44.7,18,42.2,18z"/></svg>',
         folder: '<svg viewBox="0 0 16 16" fill="#54aeff"><path d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1Z"/></svg>',
         folderOpen: '<svg viewBox="0 0 16 16"><path fill="#2185d0" d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h10.5A1.75 1.75 0 0 0 14 13.25v-8.5A1.75 1.75 0 0 0 12.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1Z"/><path fill="#54aeff" d="M15.0,6 H3.1 C2.7,6 2.4,6.4 2.3,7.0 L1.2,13.4 C1.0,14.1 1.4,15 2.0,15 H13.9 C14.3,15 14.6,14.6 14.7,14.0 L15.8,7.6 C16.0,6.9 15.6,6 15.0,6 Z"/></svg>',
         file: '<svg viewBox="0 0 16 16" fill="#57606a"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"/></svg>',
@@ -895,19 +962,46 @@
           html: true,
           linkify: true,
           highlight: function (str, lang) {
+            var highlightedCode = '';
+
             if (lang && window.hljs && window.hljs.getLanguage(lang)) {
               try {
-                return '<pre><code class="hljs">' +
-                  window.hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
-                  '</code></pre>';
-              } catch (__) { }
+                highlightedCode = window.hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
+              } catch (__) {
+                highlightedCode = md.utils.escapeHtml(str);
+              }
+            } else {
+              highlightedCode = md.utils.escapeHtml(str);
             }
-            return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
+
+            // var safeRawStr = encodeURIComponent(str);
+            var safeRawStr = encodeURIComponent(str).replace(/'/g, '%27');
+
+            return '<pre class="snippet-clipboard-content"><code class="hljs ' + (lang ? 'language-' + lang : '') + '">' + highlightedCode + '</code>' +
+              '<div class="zeroclipboard-container">' +
+              // '<div class="ClipboardButton" onclick="window.executeGithubCopy(this, \'' + safeRawStr + '\')" role="button" tabindex="0">' +
+              '<div class="ClipboardButton" onclick="window.executeGithubCopy(this, &quot;' + safeRawStr + '&quot;)" role="button" tabindex="0">' + // &quot == \"
+              '<!-- Icon Copy (visible by default) -->' +
+              '<svg class="js-clipboard-copy-icon" height="16" viewBox="0 0 16 16" version="1.1" width="16">' +
+              '<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>' +
+              '<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>' +
+              '</svg>' +
+              '<!-- Icon Check success (hidden by default) -->' +
+              '<svg class="js-clipboard-check-icon d-none" height="16" viewBox="0 0 16 16" version="1.1" width="16">' +
+              '<path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>' +
+              '</svg>' +
+              '</div>' +
+              '</div>' +
+              '</pre>';
           }
         });
 
-        md.use(window.markdownItKatex);
-
+        // md.use(window.markdownItKatex);
+        // ignore warning in console
+        md.use(window.markdownItKatex, {
+          strict: "ignore",
+          throwOnError: false
+        });
       }
 
       /* ====================================================================
@@ -1534,36 +1628,8 @@
       }
 
       /* --- GitHub Alerts (5 types) --- */
-      // function renderAlerts(html) {
-      //   var alertTypes = {
-      //     'NOTE': { css: 'note', title: 'Note', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1.5a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>' },
-      //     'TIP': { css: 'tip', title: 'Tip', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"/></svg>' },
-      //     'IMPORTANT': { css: 'important', title: 'Important', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>' },
-      //     'WARNING': { css: 'warning', title: 'Warning', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>' },
-      //     'CAUTION': { css: 'caution', title: 'Caution', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>' }
-      //   };
-
-      //   var temp = document.createElement('div');
-      //   temp.innerHTML = html;
-
-      //   temp.querySelectorAll('blockquote').forEach(function (bq) {
-      //     var p = bq.querySelector('p');
-      //     if (!p) return;
-      //     var m = p.innerHTML.trim().match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
-      //     if (m) {
-      //       var type = m[1].toUpperCase();
-      //       var cfg = alertTypes[type];
-      //       p.innerHTML = p.innerHTML.replace(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i, '');
-      //       var alertDiv = document.createElement('div');
-      //       alertDiv.className = 'markdown-alert markdown-alert-' + cfg.css;
-      //       alertDiv.innerHTML = '<div class="markdown-alert-title">' + cfg.icon + ' ' + cfg.title + '</div>' + bq.innerHTML;
-      //       bq.parentNode.replaceChild(alertDiv, bq);
-      //     }
-      //   });
-      //   return temp.innerHTML;
-      // }
       function renderAlerts(html) {
-        // GitHub định nghĩa chuẩn 5 loại Alert: NOTE, TIP, IMPORTANT, WARNING, CAUTION
+
         const alertTypes = {
           'NOTE': { class: 'note', title: 'Note', icon: '<svg class="octicon octicon-info mr-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>' },
           'TIP': { class: 'tip', title: 'Tip', icon: '<svg class="octicon octicon-light-bulb mr-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"></path></svg>' },
@@ -1578,24 +1644,14 @@
         temp.querySelectorAll('blockquote').forEach(bq => {
           const p = bq.querySelector('p');
           if (!p) return;
-
-          // Quét tìm chuỗi cấu trúc của 5 loại alert
           const m = p.innerHTML.trim().match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
           if (m) {
             const type = m[1].toUpperCase();
             const cfg = alertTypes[type];
-
-            // Xóa bỏ chuỗi thô [!WARNING] khỏi nội dung paragraph
-            // p.innerHTML = p.innerHTML.replace(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i, '');
-
-            // Xóa bỏ chuỗi thô [!WARNING] khỏi nội dung paragraph + khoảng trắng phía sau (markdown-it coi 2 space "  " = <br>)
             p.innerHTML = p.innerHTML.replace(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\](?:\s*<br\s*\/?>)?\s*/i, '').trim();
-
-            // Tạo cấu trúc phân cấp thẻ Div bọc ngoài đúng quy định css GitHub xịn
             const alertDiv = document.createElement('div');
             alertDiv.className = `markdown-alert markdown-alert-${cfg.class}`;
 
-            // Tiêu đề chứa icon SVG + Chữ ghi hoa đầu mục
             alertDiv.innerHTML = `
             <p class="markdown-alert-title">
               ${cfg.icon}
@@ -1603,8 +1659,6 @@
             </p>
             ${bq.innerHTML}
           `;
-
-            // Thay thế nút bq cũ bằng Alert Div mới tinh sạch sẽ
             bq.parentNode.replaceChild(alertDiv, bq);
           }
         });
@@ -1691,6 +1745,26 @@
         return content;
       }
 
+      window.executeGithubCopy = function (buttonElement, encodedSourceText) {
+        var rawText = decodeURIComponent(encodedSourceText);
+        var copyIcon = buttonElement.querySelector('.js-clipboard-copy-icon');
+        var checkIcon = buttonElement.querySelector('.js-clipboard-check-icon');
+
+        navigator.clipboard.writeText(rawText).then(function () {
+          if (copyIcon) copyIcon.classList.add('d-none');
+          if (checkIcon) checkIcon.classList.remove('d-none');
+          buttonElement.classList.add('copied');
+
+          setTimeout(function () {
+            if (copyIcon) copyIcon.classList.remove('d-none');
+            if (checkIcon) checkIcon.classList.add('d-none');
+            buttonElement.classList.remove('copied');
+          }, 2000);
+        }).catch(function (err) {
+          console.error("Failed to copy source code: ", err);
+        });
+      };
+
       function updatePreview() {
         if (!md) return;
 
@@ -1704,15 +1778,15 @@
             tableHtml = '<markdown-accessiblity-table data-catalyst=""><table><tbody>' +
               entries.map(function (e) { return '<tr><th>' + escH(e[0]) + '</th><td>' + fmVal(e[1], 1) + '</td></tr>'; }).join('') + '</tbody></table></markdown-accessiblity-table>';
           }
+
           var rendered = md.render(markdownBody);
-          // Thực thi hộp thông báo mở rộng của bạn
           if (typeof renderAlerts === 'function') {
             rendered = renderAlerts(rendered);
           }
 
           htmlResult = tableHtml + rendered;
         } else {
-          // 4. Biên dịch thông thường nếu tài liệu không chứa Front Matter
+
           var rendered = md.render(resolvedContent);
 
           if (typeof renderAlerts === 'function') {
