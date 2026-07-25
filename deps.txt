@@ -13,3 +13,4 @@
 [markdown-it-emoji](https://app.unpkg.com/markdown-it-emoji@3.0.0/dist/)
 [markdown-it-mark](https://unpkg.com/markdown-it-mark@4.0.0/dist/)
 [markdown-it-container](https://unpkg.com/markdown-it-container@4.0.0/dist/)
+[markdown-it-footnote](https://app.unpkg.com/markdown-it-footnote@4.0.0/files/dist)
