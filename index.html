@@ -990,6 +990,7 @@
   <script src="js/markdown-it-code-copy.js"></script>
   <script src="js/markdown-it-anchor.umd.js"></script>
   <script src="js/markdown-it-toc-done-right.umd.js"></script>
+  <script src="js/markdown-it-emoji.min.js"></script>
 
   <script>
     (function () {
@@ -1123,6 +1124,33 @@
           itemClass: 'toc-item',               // Class của thẻ <li>
           linkClass: 'toc-link',               // Class của thẻ <a> liên kết
           listType: 'ul'                       // Định dạng danh sách dạng dấu chấm tròn (hoặc 'ol' nếu muốn đánh số 1,2,3)
+        });
+
+        // Custom only
+        // md.use(window.markdownitEmoji, {
+        //   defs: {
+        //     'heart': '❤️',
+        //     'smile': '😄',
+        //     'ok': '👌',
+        //     'done': '✅' // Cho phép bạn tự định nghĩa thêm icon gõ tắt tùy ý
+        //   }
+        // });
+
+        // Default only
+        // md.use(window.markdownitEmoji)
+
+        // Custom and Default
+        // 1. Load the default emoji first to avoid override all existed emoji in plugin
+        md.use(window.markdownitEmoji);
+
+        // 2. Override or append new emoji
+        md.use(window.markdownitEmoji, {
+          defs: {
+            'heart': '❤️',
+            'smile': '😄',
+            'ok': '👌',
+            'done': '✅'
+          }
         });
       }
 
