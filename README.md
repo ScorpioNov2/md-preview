@@ -14,7 +14,7 @@ A lightweight, high-performance Markdown parser and real-time previewer built wi
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com
+   git clone https://github.com/ScorpioNov2/md-preview
    ```
 2. Open the `index.html` file directly in any modern web browser.
 

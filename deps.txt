@@ -1,2 +1,3 @@
 [Markdown-it](https://app.unpkg.com/markdown-it@14.3.0)
 [Katex](https://app.unpkg.com/katex@0.17.0)
+[Alert Types](https://github.com/orgs/community/discussions/16925)
