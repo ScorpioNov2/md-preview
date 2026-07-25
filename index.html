@@ -831,6 +831,24 @@
     .toc-link:hover {
       text-decoration: underline !important;
     }
+
+
+
+    /* ========================================
+    Highlight mark
+    ======================================== */
+
+    /* Định dạng cho thẻ mark (chữ highlight nền vàng) */
+    .markdown-body mark {
+      background-color: #fff5b1 !important;
+      /* Màu vàng dạ quang sáng dịu kiểu GitHub/Notion */
+      color: #24292f !important;
+      /* Màu chữ xám sẫm để dễ đọc */
+      padding: 0.2em 0.3em !important;
+      /* Tạo khoảng cách lề nhỏ xung quanh chữ */
+      border-radius: 2px !important;
+      /* Bo góc nhẹ 3px */
+    }
   </style>
 </head>
 
@@ -991,6 +1009,7 @@
   <script src="js/markdown-it-anchor.umd.js"></script>
   <script src="js/markdown-it-toc-done-right.umd.js"></script>
   <script src="js/markdown-it-emoji.min.js"></script>
+  <script src="js/markdown-it-mark.min.js"></script>
 
   <script>
     (function () {
@@ -1126,21 +1145,7 @@
           listType: 'ul'                       // Định dạng danh sách dạng dấu chấm tròn (hoặc 'ol' nếu muốn đánh số 1,2,3)
         });
 
-        // Custom only
-        // md.use(window.markdownitEmoji, {
-        //   defs: {
-        //     'heart': '❤️',
-        //     'smile': '😄',
-        //     'ok': '👌',
-        //     'done': '✅' // Cho phép bạn tự định nghĩa thêm icon gõ tắt tùy ý
-        //   }
-        // });
 
-        // Default only
-        // md.use(window.markdownitEmoji)
-
-        // Custom and Default
-        // 1. Load the default emoji first to avoid override all existed emoji in plugin
         md.use(window.markdownitEmoji);
 
         // 2. Override or append new emoji
@@ -1152,6 +1157,8 @@
             'done': '✅'
           }
         });
+
+        md.use(window.markdownitMark);
       }
 
       /* ====================================================================
