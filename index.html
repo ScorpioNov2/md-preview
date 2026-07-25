@@ -849,6 +849,97 @@
       border-radius: 2px !important;
       /* Bo góc nhẹ 3px */
     }
+
+
+
+    /* ========================================
+    Container box
+    ======================================== */
+    /* 1. GOM NHÓM CHUNG - Điều chỉnh lề (padding/margin) vừa phải, gọn gàng */
+    .info,
+    .success,
+    .warning,
+    .danger,
+    .note,
+    .important {
+      padding: 12px 16px !important;
+      /* Giảm padding dọc xuống 12px cho thanh thoát */
+      margin: 12px 0 !important;
+      /* Giảm khoảng cách giữa các khối hộp xuống 12px */
+      border-left: 2px solid !important;
+      border-radius: 4px !important;
+    }
+
+    /* 2. CHỈNH SỬA THẺ TIÊU ĐỀ H3 BÊN TRONG HỘP - Thu nhỏ chữ và gỡ lề thừa */
+    .info h3,
+    .success h3,
+    .warning h3,
+    .danger h3,
+    .note h3,
+    .important h3 {
+      font-size: 14px !important;
+      /* Thu nhỏ chữ tiêu đề xuống bằng cỡ chữ văn bản (14px) */
+      font-weight: 600 !important;
+      /* Giữ chữ đậm vừa phải */
+      margin-top: 0 !important;
+      /* Xóa bỏ lề trên để không bị đẩy trống */
+      margin-bottom: 6px !important;
+      /* Lề dưới vừa phải để ngăn cách với đoạn văn */
+      line-height: 1.4 !important;
+      display: flex;
+      align-items: center;
+    }
+
+    /* 3. ĐOẠN VĂN P BÊN TRONG HỘP - Giảm cỡ chữ và xóa lề đáy */
+    .info p,
+    .success p,
+    .warning p,
+    .danger p,
+    .note p,
+    .important p {
+      font-size: 13.5px !important;
+      /* Chữ nội dung nhỏ nhắn dễ đọc */
+      margin: 0 !important;
+      /* Xóa bỏ margin mặc định của thẻ p để hộp gọn nhất */
+      line-height: 1.5 !important;
+    }
+
+    /* --- BẢNG PHÂN PHỐI MÀU SẮC (GIỮ NGUYÊN BẢNG MÀU CHUẨN) --- */
+    .info {
+      background-color: #ddf4ff !important;
+      border-left-color: #0969da !important;
+      color: #1f2328 !important;
+    }
+
+    .success {
+      background-color: #dafbe1 !important;
+      border-left-color: #1a7f37 !important;
+      color: #1f2328 !important;
+    }
+
+    .warning {
+      background-color: #fff8ec !important;
+      border-left-color: #bf8700 !important;
+      color: #1f2328 !important;
+    }
+
+    .danger {
+      background-color: #ffebe9 !important;
+      border-left-color: #cf222e !important;
+      color: #1f2328 !important;
+    }
+
+    .note {
+      background-color: #f6f8fa !important;
+      border-left-color: #d0d7de !important;
+      color: #1f2328 !important;
+    }
+
+    .important {
+      background-color: #f5e8ff !important;
+      border-left-color: #8250df !important;
+      color: #1f2328 !important;
+    }
   </style>
 </head>
 
@@ -1010,6 +1101,7 @@
   <script src="js/markdown-it-toc-done-right.umd.js"></script>
   <script src="js/markdown-it-emoji.min.js"></script>
   <script src="js/markdown-it-mark.min.js"></script>
+  <script src="js/markdown-it-container.min.js"></script>
 
   <script>
     (function () {
@@ -1159,6 +1251,14 @@
         });
 
         md.use(window.markdownitMark);
+
+        // Container box - unlimited type
+        md.use(window.markdownitContainer, 'info');
+        md.use(window.markdownitContainer, 'success');
+        md.use(window.markdownitContainer, 'warning');
+        md.use(window.markdownitContainer, 'danger');
+        md.use(window.markdownitContainer, 'note');
+        md.use(window.markdownitContainer, 'important');
       }
 
       /* ====================================================================
