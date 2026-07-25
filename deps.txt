@@ -10,3 +10,4 @@
 [markdown-it-code-copy](https://cdn.jsdelivr.net/npm/markdown-it-code-copy@0.2.3/index.min.js) [edited export]
 [markdown-it-anchor](https://app.unpkg.com/markdown-it-anchor@9.2.1/files/dist)
 [markdown-it-toc-done-right](https://app.unpkg.com/markdown-it-toc-done-right@4.2.0/files/dist)
+[markdown-it-emoji](https://app.unpkg.com/markdown-it-emoji@3.0.0/dist/)
