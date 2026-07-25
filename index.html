@@ -51,6 +51,9 @@
       flex-shrink: 0;
       position: relative;
       user-select: none;
+    }
+
+    .sidebar.animating {
       transition: width 0.15s ease, min-width 0.15s ease, max-width 0.15s ease;
     }
 
@@ -603,7 +606,7 @@
 <body>
 
   <!-- SIDEBAR -->
-  <div class="sidebar drop-zone" id="sidebar">
+  <div class="sidebar animating drop-zone" id="sidebar">
     <div class="drop-overlay" id="drop-overlay">
       <div class="drop-text" id="drop-text">
         Drop here to load file/folder
@@ -969,10 +972,12 @@
          4. RESIZABLE SIDEBAR (20% - 40%)
       ==================================================================== */
       var isResizing = false;
+      var resizeRafId = null;
 
       resizeHandle.addEventListener('mousedown', function (e) {
         isResizing = true;
         resizeHandle.classList.add('active');
+        sidebar.classList.remove('animating');
         document.body.style.cursor = 'col-resize';
         document.body.style.userSelect = 'none';
         e.preventDefault();
@@ -980,18 +985,24 @@
 
       document.addEventListener('mousemove', function (e) {
         if (!isResizing) return;
-        var totalW = window.innerWidth;
-        var pct = (e.clientX / totalW) * 100;
-        pct = Math.max(20, Math.min(40, pct));
-        sidebar.style.width = pct + '%';
-        sidebar.style.minWidth = pct + '%';
-        sidebar.style.maxWidth = pct + '%';
+        if (resizeRafId) return;
+        resizeRafId = requestAnimationFrame(function () {
+          resizeRafId = null;
+          var totalW = window.innerWidth;
+          var pct = (e.clientX / totalW) * 100;
+          pct = Math.max(20, Math.min(40, pct));
+          sidebar.style.width = pct + '%';
+          sidebar.style.minWidth = pct + '%';
+          sidebar.style.maxWidth = pct + '%';
+        });
       });
 
       document.addEventListener('mouseup', function () {
         if (!isResizing) return;
         isResizing = false;
+        if (resizeRafId) { cancelAnimationFrame(resizeRafId); resizeRafId = null; }
         resizeHandle.classList.remove('active');
+        sidebar.classList.add('animating');
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
       });
