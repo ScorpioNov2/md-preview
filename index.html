@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Workspace Replica - Đấu nối Local</title>
+
+  <!-- 1. ĐẤU NỐI STYLE THEO CẤU TRÚC THƯ MỤC MỚI CỦA BẠN -->
+  <link rel="stylesheet" href="css/github-markdown.css">
+  <link rel="stylesheet" href="css/katex.min.css">
+
+  <style>
+    :root {
+      --border-color: #d0d7de;
+      --bg-gray: #f6f8fa;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #ffffff;
+      color: #1f2328;
+    }
+
+    /* === THANH BÊN CÂY THƯ MỤC === */
+    .sidebar {
+      width: 260px;
+      border-right: 1px solid var(--border-color);
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--bg-gray);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sidebar-header h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .file-input-btn {
+      font-size: 12px;
+      padding: 5px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: #ffffff;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .file-tree {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 5px;
+      font-family: monospace;
+      font-size: 13px;
+    }
+
+    .tree-item {
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tree-item.active {
+      background-color: #ddf4ff;
+      color: #0969da;
+      font-weight: 600;
+    }
+
+    /* === KHU VỰC CHÍNH === */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background-color: var(--bg-gray);
+      padding: 16px;
+    }
+
+    .workspace-box {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* TOOLBAR GITHUB STYLE */
+    .github-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--bg-gray);
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .toggle-group {
+      display: flex;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .toggle-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      color: #57606a;
+    }
+
+    .toggle-btn.active {
+      background-color: #ffffff;
+      color: #1f2328;
+      font-weight: 600;
+      position: relative;
+    }
+
+    .toggle-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: #fd8c73;
+    }
+
+    .action-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .view-pane {
+      flex: 1;
+      overflow: auto;
+      display: none;
+    }
+
+    .view-pane.active {
+      display: block;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100%;
+      border: none;
+      padding: 24px;
+      resize: none;
+      font-family: monospace;
+      font-size: 14px;
+      outline: none;
+      box-sizing: border-box;
+      line-height: 1.6;
+    }
+
+    .markdown-body {
+      padding: 32px;
+      background-color: #ffffff;
+    }
+
+    /* Custom Style Front Matter */
+    .fm-null {
+      opacity: 0.45;
+      font-style: italic;
+    }
+
+    markdown-accessiblity-table {
+      display: block;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+
+    markdown-accessiblity-table table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0 !important;
+    }
+
+    markdown-accessiblity-table code {
+      background-color: rgba(175, 184, 193, 0.2);
+      padding: 0.2em 0.4em;
+      border-radius: 6px;
+      font-size: 85%;
+    }
+
+    markdown-accessiblity-table a {
+      color: #0969da;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- BÊN TRÁI: CÂY THƯ MỤC -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h3>📁 Workspace Folder</h3>
+      <label class="file-input-btn">
+        Mở thư mục dự án
+        <input type="file" id="folder-picker" webkitdirectory directory multiple style="display: none;">
+      </label>
+    </div>
+    <div class="file-tree" id="tree-container">
+      <div style="color: #57606a; padding: 10px; font-style: italic;">Chưa chọn thư mục nào...</div>
+    </div>
+  </div>
+
+  <!-- BÊN PHẢI: KHUNG EDIT & PREVIEW -->
+  <div class="main-content">
+    <div class="workspace-box">
+      <div class="github-toolbar">
+        <div class="toggle-group">
+          <button class="toggle-btn active" onclick="switchTab('preview')">Preview</button>
+          <button class="toggle-btn" onclick="switchTab('code')">Code</button>
+        </div>
+        <div class="action-group">
+          <button class="action-btn" onclick="copyContent()">📋 Copy</button>
+          <button class="action-btn" onclick="downloadFile()">📥 Tải xuống (.md)</button>
+        </div>
+      </div>
+
+      <div id="pane-preview" class="view-pane markdown-body active"></div>
+      <div id="pane-code" class="view-pane">
+        <textarea id="markdown-input" placeholder="Mã nguồn..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ĐẤU NỐI JAVASCRIPT THEO CẤU TRÚC THƯ MỤC MỚI CỦA BẠN -->
+  <script src="js/markdown-it.min.js"></script>
+  <script src="js/katex.min.js"></script>
+
+  <script>
+    const input = document.getElementById('markdown-input');
+    const preview = document.getElementById('pane-preview');
+    let loadedFiles = {};
+    let currentFileName = "README.md";
+
+    // Đoạn text demo kiểm thử full tính năng nâng cao
+    input.value = `---
+name: gemini
+metadata:
+  {
+    "openclaw": { "emoji": "✨", "requires": { "bins": ["gemini"] } }
+  }
+---
+
+# 🚀 Complete MD-Preview Project
+
+> [!IMPORTANT]
+> The system utilizes a local **markdown-it** core engine, operating completely offline.
+
+> [!WARNING]
+> Integrated with the **KaTeX** library for razor-sharp mathematical formula parsing.
+
+## 📊 LaTeX Math Testing
+Block Math (standalone function):
+$$
+f(x) = \\int_{-\\infty}^{\\infty} \\hat{f}(\\xi)\\,e^{2\\pi i \\xi x}\\,d\\xi
+$$
+
+Or writing mathematics directly inline (Inline Math) like $E = mc^2$ works perfectly.`;
+
+    // Khởi tạo lõi markdown-it cho phép render thẻ HTML thô
+    const md = window.markdownit({
+      html: true,
+      linkify: true,
+      typography: true
+    });
+
+    // --- LOGIC XỬ LÝ TOÁN HỌC KATEX ---
+    function renderMath(text) {
+      if (typeof katex === 'undefined') return text;
+
+      // Khối toán độc lập $$...$$
+      let processed = text.replace(/\$\$([\s\S]+?)\$\$/g, (match, math) => {
+        try { return '<div class="katex-display">' + katex.renderToString(math.trim(), { displayMode: true }) + '</div>'; }
+        catch (e) { return `<span style="color:red">${escH(match)}</span>`; }
+      });
+
+      // Khối toán trên một dòng $...$
+      processed = processed.replace(/\$([^\$\n]+?)\$/g, (match, math) => {
+        try { return katex.renderToString(math.trim(), { displayMode: false }); }
+        catch (e) { return `<span style="color:red">${escH(match)}</span>`; }
+      });
+
+      return processed;
+    }
+
+    // --- LOGIC XỬ LÝ GITHUB ALERTS ---
+    function renderAlerts(html) {
+      const alertTypes = {
+        'NOTE': { class: 'note', title: 'Note', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM6.5 7.75A.75.75 0 0 1 7.25 7h1.5a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>' },
+        'WARNING': { class: 'warning', title: 'Warning', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M6.457 1.047c.659-1.21 2.427-1.21 3.086 0l6.03 11.033c.637 1.169-.212 2.61-1.543 2.61H1.97c-1.331 0-2.18-1.441-1.543-2.61ZM8 5a.75.75 0 0 0-.75.75v3.5a.75.75 0 0 0 1.5 0v-3.5A.75.75 0 0 0 8 5Zm0 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path></svg>' },
+        'IMPORTANT': { class: 'important', title: 'Important', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M0 1.75C0 .783.783 0 1.75 0h12.5C15.217 0 16 .783 16 1.75v12.5c0 .967-.783 1.75-1.75 1.75H1.75A1.75 1.75 0 0 1 0 14.25ZM1.75 1.5a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25Zm6.25 3.5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 5Zm0 6a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"></path></svg>' }
+      };
+
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+
+      temp.querySelectorAll('blockquote').forEach(bq => {
+        const p = bq.querySelector('p');
+        if (!p) return;
+
+        const m = p.innerHTML.trim().match(/^\[!(NOTE|WARNING|IMPORTANT)\]/i);
+        if (m) {
+          const type = m[1].toUpperCase();
+          const cfg = alertTypes[type];
+          p.innerHTML = p.innerHTML.replace(/^\[!(NOTE|WARNING|IMPORTANT)\]/i, '');
+
+          const alertDiv = document.createElement('div');
+          alertDiv.className = `markdown-alert markdown-alert-${cfg.class}`;
+          alertDiv.innerHTML = `<p class="markdown-alert-title" dir="auto">${cfg.icon}${cfg.title}</p>${bq.innerHTML}`;
+          bq.parentNode.replaceChild(alertDiv, bq);
+        }
+      });
+      return temp.innerHTML;
+    }
+
+    // --- LOGIC PHÂN TÍCH FRONT MATTER CHUẨN XỊN CỦA BẠN ---
+    function escH(str) { return !str ? '' : String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    function parseFM(text) {
+      const result = {}, lines = text.split('\n'); let i = 0;
+      while (i < lines.length) {
+        const line = lines[i];
+        const m = line.match(/^([a-zA-Z_][a-zA-Z0-9_\-]*)\s*:\s*(.*)/);
+        if (!m) { i++; continue; }
+        const key = m[1]; let valInline = m[2].trim(); i++;
+        if (!valInline) {
+          const block = [];
+          while (i < lines.length && (lines[i] === '' || /^\s/.test(lines[i]))) { block.push(lines[i]); i++; }
+          const raw2 = block.join('\n').trim();
+          const cleaned = raw2.replace(/,(\s*[}\]])/g, '$1');
+          try { result[key] = JSON.parse(cleaned); } catch (e) { result[key] = raw2; }
+        } else {
+          if ((valInline.startsWith('"') && valInline.endsWith('"')) || (valInline.startsWith("'") && valInline.endsWith("'")))
+            result[key] = valInline.slice(1, -1);
+          else { try { result[key] = JSON.parse(valInline); } catch (e) { result[key] = valInline; } }
+        }
+      }
+      return result;
+    }
+
+    function fmVal(v, depth = 0) {
+      if (v === null || v === undefined) return '<em class="fm-null">null</em>';
+      if (typeof v === 'boolean' || typeof v === 'number') return `<code>${v}</code>`;
+      if (typeof v === 'string') {
+        if (/^https?:\/\//.test(v)) return `<a href="${escH(v)}" target="_blank" rel="noopener">${escH(v)}</a>`;
+        return escH(v);
+      }
+      if (Array.isArray(v)) {
+        if (!v.length) return '<em class="fm-null">[]</em>';
+        if (v.every(x => x && typeof x === 'object' && !Array.isArray(x))) {
+          const keys = [...new Set(v.flatMap(x => Object.keys(x)))];
+          return '<table><thead><tr>' +
+            keys.map(k => `<th>${escH(k)}</th>`).join('') + '</tr></thead><tbody>' +
+            v.map(row => '<tr>' + keys.map(k => `<td><div dir="auto">${fmVal(row[k], depth + 1)}</div></td>`).join('') + '</tr>').join('') +
+            '</tbody></table>';
+        }
+        return v.map(x => typeof x === 'object' ? fmVal(x, depth + 1) : `<code>${escH(String(x))}</code>`).join(' ');
+      }
+      if (typeof v === 'object') {
+        const entries = Object.entries(v);
+        if (!entries.length) return '<em class="fm-null">{}</em>';
+        if (depth === 0) {
+          return '<table><tbody>' +
+            entries.map(([k, val]) => `<tr><th>${escH(k)}</th><td>${fmVal(val, 1)}</td></tr>`).join('') +
+            '</tbody></table>';
+        }
+        return '<table><thead><tr>' +
+          entries.map(([k]) => `<th>${escH(k)}</th>`).join('') + '</tr></thead><tbody><tr>' +
+          entries.map(([, val]) => `<td><div dir="auto">${fmVal(val, depth + 1)}</div></td>`).join('') +
+          '</tr></tbody></table>';
+      }
+      return escH(String(v));
+    }
+
+    // --- HÀM TỔNG ĐIỀU PHỐI BIÊN DỊCH CHÍNH ---
+    function updatePreview() {
+      if (typeof markdownit === 'undefined') return;
+
+      let raw = input.value.trim();
+      let fmHtml = "";
+
+      // Khớp và tách chuỗi Front Matter ở đầu file
+      const fmMatch = raw.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+      if (fmMatch) {
+        // Truyền chuỗi text bên trong cặp dấu --- (nằm ở phần tử thứ 1 của mảng match) vào hàm parse
+        const data = parseFM(fmMatch[1]);
+        const entries = Object.entries(data);
+        if (entries.length > 0) {
+          fmHtml = '<markdown-accessiblity-table data-catalyst=""><table><tbody>' +
+            entries.map(([k, v]) => `<tr><th>${escH(k)}</th><td>${fmVal(v, 1)}</td></tr>`).join('') +
+            '</tbody></table></markdown-accessiblity-table>';
+        }
+        raw = raw.replace(fmMatch[0], "");
+      }
+
+      // Biên dịch chuỗi Markdown thô qua markdown-it, sau đó vá Toán học và Alerts
+      let renderedHtml = md.render(raw);
+      renderedHtml = renderMath(renderedHtml);
+      renderedHtml = renderAlerts(renderedHtml);
+
+      preview.innerHTML = fmHtml + renderedHtml;
+    }
+
+    // === HỆ THỐNG QUẢN LÝ QUÉT THƯ MỤC LOCAL ===
+    document.getElementById('folder-picker').addEventListener('change', function (e) {
+      const files = e.target.files;
+      const treeContainer = document.getElementById('tree-container');
+      treeContainer.innerHTML = "";
+      loadedFiles = {};
+
+      if (files.length === 0) return;
+      const sortedFiles = Array.from(files).sort((a, b) => a.webkitRelativePath.localeCompare(b.webkitRelativePath));
+
+      sortedFiles.forEach(file => {
+        const pathParts = file.webkitRelativePath.split('/');
+        const fileName = pathParts[pathParts.length - 1];
+        if (file.webkitRelativePath.includes('.git/') || file.webkitRelativePath.includes('node_modules/')) return;
+
+        const item = document.createElement('div');
+        item.className = "tree-item";
+        const isMd = fileName.toLowerCase().endsWith('.md');
+        item.innerHTML = isMd ? `📄 <span>${fileName}</span>` : `📁 <span>${fileName}</span>`;
+
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+          loadedFiles[file.webkitRelativePath] = evt.target.result;
+          if (fileName.toLowerCase() === 'readme.md') {
+            document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+            item.classList.add('active');
+            currentFileName = fileName;
+            input.value = evt.target.result;
+            updatePreview();
+          }
+        };
+        reader.readAsText(file);
+
+        item.addEventListener('click', () => {
+          document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+          item.classList.add('active');
+          currentFileName = fileName;
+          input.value = loadedFiles[file.webkitRelativePath] || "# File không chứa dữ liệu văn bản thô.";
+          updatePreview();
+        });
+        treeContainer.appendChild(item);
+      });
+    });
+
+    // === CÁC NÚT CHỨC NĂNG TOOLBAR ===
+    function copyContent() {
+      navigator.clipboard.writeText(input.value).then(() => alert("Đã sao chép vào clipboard!"))
+        .catch(() => {
+          const t = document.createElement("textarea"); t.value = input.value;
+          document.body.appendChild(t); t.select(); document.execCommand('copy');
+          document.body.removeChild(t); alert("Đã sao chép vào clipboard! (Dự phòng)");
+        });
+    }
+
+    // Tải xuống file lưu giữ tên file linh hoạt từ cây thư mục
+    function downloadFile() {
+      const blob = new Blob([input.value], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url;
+      a.download = currentFileName.toLowerCase().endsWith('.md') ? currentFileName : "README.md";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    // Điều hướng tab Preview / Code mượt mà
+    function switchTab(name) {
+      document.querySelectorAll('.toggle-group .toggle-btn, .workspace-box .view-pane').forEach(el => el.classList.remove('active'));
+      window.event.target.classList.add('active');
+      document.getElementById(`pane-${name}`).classList.add('active');
+      if (name === 'preview') updatePreview();
+    }
+
+    // Theo dõi thao tác bàn phím thời gian thực
+    input.addEventListener('input', updatePreview);
+    updatePreview();
+  </script>
+</body>
+
+</html>
