@@ -1,3 +1,8 @@
 [Markdown-it](https://app.unpkg.com/markdown-it@14.3.0)
 [Katex](https://app.unpkg.com/katex@0.17.0)
 [Alert Types](https://github.com/orgs/community/discussions/16925)
+[highlight.js](https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js)
+[sindresorhus/github-markdown-css](https://github.com/sindresorhus/github-markdown-css)
+[highlight.css](https://app.unpkg.com/highlight.js@11.11.1/files/styles)
+[github.css](https://unpkg.com/highlight.js@11.9.0/styles/github.css)
+[github.css](https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css)
