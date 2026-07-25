@@ -593,6 +593,63 @@
       padding: 2px 0;
     }
 
+    /* ===== CONTEXT MENU ===== */
+    .ctx-menu {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      padding: 4px 0;
+      min-width: 220px;
+      font-size: 13px;
+    }
+
+    .ctx-menu.visible {
+      display: block;
+    }
+
+    .ctx-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      cursor: pointer;
+      color: #1f2328;
+      white-space: nowrap;
+    }
+
+    .ctx-item:hover {
+      background: rgba(208, 215, 222, 0.4);
+    }
+
+    .ctx-item svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      color: #57606a;
+    }
+
+    .ctx-sep {
+      height: 1px;
+      background: var(--border-color);
+      margin: 4px 0;
+    }
+
+    .ctx-item.danger {
+      color: #d1242f;
+    }
+
+    .ctx-item.danger svg {
+      color: #d1242f;
+    }
+
+    .ctx-item.danger:hover {
+      background: var(--red-bg);
+    }
+
     #folder-picker {
       display: none;
     }
@@ -708,6 +765,47 @@
     </div>
   </div>
 
+  <!-- CONTEXT MENU -->
+  <div class="ctx-menu" id="ctx-menu">
+    <div class="ctx-item" data-action="open-file">
+      <svg viewBox="0 0 16 16" fill="currentColor">
+        <path
+          d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z" />
+      </svg>
+      Open New File
+    </div>
+    <div class="ctx-item" data-action="open-folder">
+      <svg viewBox="0 0 16 16" fill="currentColor">
+        <path
+          d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1Z" />
+      </svg>
+      Open New Folder
+    </div>
+    <div class="ctx-sep" id="ctx-sep-path" style="display:none"></div>
+    <div class="ctx-item" data-action="copy-abs" id="ctx-copy-abs" style="display:none">
+      <svg viewBox="0 0 16 16" fill="currentColor">
+        <path
+          d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z" />
+      </svg>
+      Copy Absolute Path
+    </div>
+    <div class="ctx-item" data-action="copy-rel" id="ctx-copy-rel" style="display:none">
+      <svg viewBox="0 0 16 16" fill="currentColor">
+        <path
+          d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z" />
+      </svg>
+      Copy Relative Path
+    </div>
+    <div class="ctx-sep" id="ctx-sep-close" style="display:none"></div>
+    <div class="ctx-item danger" data-action="close-current" id="ctx-close-current" style="display:none">
+      <svg viewBox="0 0 16 16" fill="currentColor">
+        <path
+          d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z" />
+      </svg>
+      <span id="ctx-close-label">Close Current</span>
+    </div>
+  </div>
+
   <script src="js/markdown-it.min.js"></script>
   <script src="js/katex.min.js"></script>
 
@@ -725,7 +823,10 @@
         folder: '<svg viewBox="0 0 16 16" fill="#54aeff"><path d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1Z"/></svg>',
         folderOpen: '<svg viewBox="0 0 16 16" fill="#54aeff"><path d="M.023 2.376A1.75 1.75 0 0 1 1.75 1h3.876a.75.75 0 0 1 .548.238l.924 1.012H14.25A1.75 1.75 0 0 1 16 4v.5a.75.75 0 0 1-1.5 0V4a.25.25 0 0 0-.25-.25H6.5l-.875 1.63a.75.75 0 0 1-.66.41H1.75a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V9a.75.75 0 0 1 1.5 0v5.25A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25V2.75a.75.75 0 0 1 .023-.374Z"/></svg>',
         file: '<svg viewBox="0 0 16 16" fill="#57606a"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"/></svg>',
-        fileMd: '<svg viewBox="0 0 16 16" fill="#57606a"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"/><text x="5" y="13" font-size="7" font-weight="700" fill="#1f2328" font-family="ui-monospace,monospace">M</text></svg>'
+        fileMd: '<svg viewBox="0 0 16 16" fill="#57606a"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"/><text x="5" y="13" font-size="7" font-weight="700" fill="#1f2328" font-family="ui-monospace,monospace">M</text></svg>',
+        image: '<svg viewBox="0 0 16 16" fill="#54aeff"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/><path d="m2.571 1.014 11.858.002a.75.75 0 0 1 .75.75v10.468a.75.75 0 0 1-.75.75H2.571a.75.75 0 0 1-.75-.75V1.764a.75.75 0 0 1 .75-.75Zm.75 1.5v9.468h10.358V2.514Z"/><path d="M4.25 13h7.5a.25.25 0 0 0 .25-.25v-.75a.25.25 0 0 0-.094-.195L9.22 8.28a.25.25 0 0 0-.325.06l-1.57 1.97-1.16-1.16a.25.25 0 0 0-.35 0L3.694 12.06A.25.25 0 0 0 4.25 13Z"/></svg>',
+        video: '<svg viewBox="0 0 16 16" fill="#a371f7"><path d="M2.25 1A2.25 2.25 0 0 0 0 3.25v9.5A2.25 2.25 0 0 0 2.25 15h7.5A2.25 2.25 0 0 0 12 12.75v-1.5l3.47 1.96a.75.75 0 0 0 1.03-.69V4.48a.75.75 0 0 0-1.03-.69L12 5.75v-1.5A2.25 2.25 0 0 0 9.75 1.5h-7.5ZM1.5 3.25a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 .75.75v9.5a.75.75 0 0 1-.75.75h-7.5a.75.75 0 0 1-.75-.75Zm13.5 1.08-3 1.7v4.94l3 1.7Z"/></svg>',
+        audio: '<svg viewBox="0 0 16 16" fill="#db6d28"><path d="M8 1.5a.75.75 0 0 0-1.5 0v9.327a2.5 2.5 0 1 0 1.5 0V1.5Z"/><path d="M12.5 4.5a.75.75 0 0 0-1.5 0v5.75a.75.75 0 0 0 1.5 0V4.5ZM3.5 6.5a.75.75 0 0 1 .75.75v2a.75.75 0 0 1-1.5 0v-2A.75.75 0 0 1 3.5 6.5Z"/></svg>'
       };
 
       /* ====== DOM REFS ====== */
@@ -755,6 +856,23 @@
       var wordWrap = false;
       var activeTreeRow = null;
       var treeRoot = null;
+      var mediaBlobUrls = {};
+      var openMode = 'none';
+
+      var MEDIA_EXTS = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico', 'mp4', 'webm', 'ogg', 'mov', 'mp3', 'wav', 'flac', 'avif'];
+      var IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico', 'avif'];
+      var VIDEO_EXTS = ['mp4', 'webm', 'ogg', 'mov'];
+
+      function isMediaFile(name) {
+        var ext = name.split('.').pop().toLowerCase();
+        return MEDIA_EXTS.indexOf(ext) !== -1;
+      }
+      function getMediaType(name) {
+        var ext = name.split('.').pop().toLowerCase();
+        if (IMAGE_EXTS.indexOf(ext) !== -1) return 'image';
+        if (VIDEO_EXTS.indexOf(ext) !== -1) return 'video';
+        return 'audio';
+      }
 
       var defaultData = '# github-markdown-css\n\nThe minimal amount of CSS to replicate the GitHub Markdown style.\n\nThe CSS is generated. Contributions should go to [this repo](https://github.com/ScorpioNov2/md-preview).\n\n## Demo\nIntegrated file tree offline preview is ready!';
 
@@ -1097,32 +1215,46 @@
       });
 
       function loadFiles(files, isFolder) {
+        Object.keys(mediaBlobUrls).forEach(function (k) { URL.revokeObjectURL(mediaBlobUrls[k]); });
+        mediaBlobUrls = {};
         loadedFiles = {};
         activeTreeRow = null;
 
         if (isFolder) {
-          var filePromises = Array.from(files).map(function (file) {
+          openMode = 'folder';
+          var mediaFiles = [];
+          var textFilePromises = [];
+
+          Array.from(files).forEach(function (file) {
             var parts = file.webkitRelativePath.split('/');
-            if (parts.some(function (p) { return p === '.git' || p === '.DS_Store' || p === 'node_modules'; })) return Promise.resolve(null);
-            return new Promise(function (resolve) {
-              var reader = new FileReader();
-              reader.onload = function (evt) { loadedFiles[file.webkitRelativePath] = evt.target.result; resolve(file); };
-              reader.onerror = function () { resolve(null); };
-              reader.readAsText(file);
-            });
+            if (parts.some(function (p) { return p === '.git' || p === '.DS_Store' || p === 'node_modules'; })) return;
+            if (isMediaFile(file.name)) {
+              mediaBlobUrls[file.webkitRelativePath] = URL.createObjectURL(file);
+              mediaFiles.push(file);
+            } else {
+              textFilePromises.push(new Promise(function (resolve) {
+                var reader = new FileReader();
+                reader.onload = function (evt) { loadedFiles[file.webkitRelativePath] = evt.target.result; resolve(file); };
+                reader.onerror = function () { resolve(null); };
+                reader.readAsText(file);
+              }));
+            }
           });
-          Promise.all(filePromises).then(function (resolved) {
-            var validFiles = resolved.filter(function (f) { return f !== null; });
-            treeRoot = buildTree(validFiles);
+
+          Promise.all(textFilePromises).then(function (resolved) {
+            var validTextFiles = resolved.filter(function (f) { return f !== null; });
+            var allForTree = validTextFiles.concat(mediaFiles);
+            treeRoot = buildTree(allForTree);
             renderTree(treeRoot);
             treeEmpty.style.display = 'none';
             var allPaths = Object.keys(loadedFiles);
             var readmePath = allPaths.find(function (p) { return p.split('/').pop().toLowerCase() === 'readme.md'; })
               || allPaths.find(function (p) { return p.toLowerCase().endsWith('.md'); });
             if (readmePath) selectFileInTree(readmePath);
-            sidebarLabel.textContent = validFiles.length ? validFiles[0].webkitRelativePath.split('/')[0] : 'File tree';
+            sidebarLabel.textContent = allForTree.length ? allForTree[0].webkitRelativePath.split('/')[0] : 'File tree';
           });
         } else {
+          openMode = 'file';
           var promises = Array.from(files).map(function (file) {
             return new Promise(function (resolve) {
               var reader = new FileReader();
@@ -1169,12 +1301,17 @@
           var parts = file.webkitRelativePath.split('/');
           var node = root;
           for (var i = 0; i < parts.length; i++) {
-            var part = parts[i], isLast = i === parts.length - 1, isMd = part.toLowerCase().endsWith('.md');
+            var part = parts[i], isLast = i === parts.length - 1;
+            var ext = part.split('.').pop().toLowerCase();
+            var isMd = isLast && ext === 'md';
+            var isMedia = isLast && isMediaFile(part);
             if (!node.children[part]) {
-              node.children[part] = { name: part, children: {}, isFolder: !isLast, expanded: false, path: parts.slice(0, i + 1).join('/'), isMd: isLast && isMd, fileEntry: isLast ? file : null };
+              node.children[part] = { name: part, children: {}, isFolder: !isLast, expanded: false, path: parts.slice(0, i + 1).join('/'), isMd: isMd, isMedia: isMedia, mediaType: isMedia ? getMediaType(part) : null, fileEntry: isLast ? file : null };
             } else if (isLast) {
               node.children[part].fileEntry = file;
               node.children[part].isMd = isMd;
+              node.children[part].isMedia = isMedia;
+              node.children[part].mediaType = isMedia ? getMediaType(part) : null;
             }
             node = node.children[part];
           }
@@ -1244,7 +1381,7 @@
 
           var icon = document.createElement('span');
           icon.className = 'tree-icon';
-          icon.innerHTML = node.isFolder ? (node.expanded ? SVG.folderOpen : SVG.folder) : (node.isMd ? SVG.fileMd : SVG.file);
+          icon.innerHTML = node.isFolder ? (node.expanded ? SVG.folderOpen : SVG.folder) : node.isMedia ? (node.mediaType === 'video' ? SVG.video : (node.mediaType === 'audio' ? SVG.audio : SVG.image)) : (node.isMd ? SVG.fileMd : SVG.file);
           row.appendChild(icon);
 
           var name = document.createElement('span');
@@ -1259,6 +1396,20 @@
             if (node.isFolder) {
               node.expanded = !node.expanded;
               renderTree(treeRoot);
+            } else if (node.isMedia) {
+              var url = mediaBlobUrls[node.path];
+              if (!url) return;
+              var md;
+              if (node.mediaType === 'image') {
+                md = '![' + node.name + '](' + url + ')';
+              } else if (node.mediaType === 'video') {
+                md = '<video controls src="' + url + '" style="max-width:100%"></video>';
+              } else {
+                md = '<audio controls src="' + url + '"></audio>';
+              }
+              input.value = md;
+              updatePreview();
+              scheduleGutterUpdate();
             } else {
               if (activeTreeRow) activeTreeRow.classList.remove('active');
               row.classList.add('active');
@@ -1457,6 +1608,142 @@
         }
         preview.innerHTML = htmlResult;
       }
+
+      /* ====================================================================
+         11. CONTEXT MENU & CLOSE CURRENT
+      ==================================================================== */
+      var ctxMenu = document.getElementById('ctx-menu');
+      var ctxCopyAbs = document.getElementById('ctx-copy-abs');
+      var ctxCopyRel = document.getElementById('ctx-copy-rel');
+      var ctxSepPath = document.getElementById('ctx-sep-path');
+      var ctxSepClose = document.getElementById('ctx-sep-close');
+      var ctxCloseCurrent = document.getElementById('ctx-close-current');
+      var ctxCloseLabel = document.getElementById('ctx-close-label');
+      var ctxTargetNode = null;
+
+      function findNodeByPath(root, path) {
+        if (!root) return null;
+        if (root.path === path) return root;
+        var keys = Object.keys(root.children || {});
+        for (var i = 0; i < keys.length; i++) {
+          var found = findNodeByPath(root.children[keys[i]], path);
+          if (found) return found;
+        }
+        return null;
+      }
+
+      function getRelativePath(targetPath) {
+        var currentPath = '';
+        if (activeTreeRow && activeTreeRow.dataset && activeTreeRow.dataset.path) {
+          currentPath = activeTreeRow.dataset.path;
+        }
+        if (!currentPath) return targetPath;
+        var fromDir = currentPath.split('/').slice(0, -1);
+        var toParts = targetPath.split('/');
+        var common = 0;
+        while (common < fromDir.length && common < toParts.length && fromDir[common] === toParts[common]) common++;
+        var up = fromDir.length - common;
+        var down = toParts.slice(common);
+        var result = [];
+        for (var i = 0; i < up; i++) result.push('..');
+        return result.concat(down).join('/') || '.';
+      }
+
+      function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(text).catch(function () {
+            fallbackCopy(text);
+          });
+        }
+        fallbackCopy(text);
+      }
+
+      function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+
+      function closeCurrent() {
+        Object.keys(mediaBlobUrls).forEach(function (k) { URL.revokeObjectURL(mediaBlobUrls[k]); });
+        mediaBlobUrls = {};
+        loadedFiles = {};
+        treeRoot = null;
+        activeTreeRow = null;
+        openMode = 'none';
+        currentFileName = 'readme.md';
+        input.value = defaultData;
+        updatePreview();
+        scheduleGutterUpdate();
+        var rows = treeContainer.querySelectorAll('.tree-row');
+        for (var i = 0; i < rows.length; i++) rows[i].remove();
+        treeEmpty.style.display = '';
+        sidebarLabel.textContent = 'File tree';
+      }
+
+      function showCtxMenu(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var row = e.target.closest('.tree-row');
+        ctxTargetNode = null;
+        if (row && row.dataset && row.dataset.path && treeRoot) {
+          ctxTargetNode = findNodeByPath(treeRoot, row.dataset.path);
+        }
+
+        var hasTarget = !!ctxTargetNode;
+        ctxCopyAbs.style.display = hasTarget ? '' : 'none';
+        ctxCopyRel.style.display = hasTarget ? '' : 'none';
+        ctxSepPath.style.display = hasTarget ? '' : 'none';
+
+        var hasOpen = openMode !== 'none';
+        ctxSepClose.style.display = hasOpen ? '' : 'none';
+        ctxCloseCurrent.style.display = hasOpen ? '' : 'none';
+        if (hasOpen) {
+          ctxCloseLabel.textContent = openMode === 'folder' ? 'Close Current Folder' : 'Close Current File';
+        }
+
+        ctxMenu.classList.add('visible');
+        var x = e.clientX, y = e.clientY;
+        requestAnimationFrame(function () {
+          var mw = ctxMenu.offsetWidth, mh = ctxMenu.offsetHeight;
+          if (x + mw > window.innerWidth) x = window.innerWidth - mw - 4;
+          if (y + mh > window.innerHeight) y = window.innerHeight - mh - 4;
+          if (x < 0) x = 4;
+          if (y < 0) y = 4;
+          ctxMenu.style.left = x + 'px';
+          ctxMenu.style.top = y + 'px';
+        });
+      }
+
+      function hideCtxMenu() {
+        ctxMenu.classList.remove('visible');
+        ctxTargetNode = null;
+      }
+
+      sidebar.addEventListener('contextmenu', showCtxMenu);
+      document.addEventListener('click', function (e) {
+        if (!ctxMenu.contains(e.target)) hideCtxMenu();
+      });
+      document.addEventListener('contextmenu', function (e) {
+        if (!sidebar.contains(e.target)) hideCtxMenu();
+      });
+
+      ctxMenu.addEventListener('click', function (e) {
+        var item = e.target.closest('.ctx-item');
+        if (!item) return;
+        var action = item.dataset.action;
+        if (action === 'open-file') { filePicker.click(); }
+        else if (action === 'open-folder') { folderPicker.click(); }
+        else if (action === 'copy-abs' && ctxTargetNode) { copyToClipboard(ctxTargetNode.path); }
+        else if (action === 'copy-rel' && ctxTargetNode) { copyToClipboard(getRelativePath(ctxTargetNode.path)); }
+        else if (action === 'close-current') { closeCurrent(); }
+        hideCtxMenu();
+      });
 
       updatePreview();
       scheduleGutterUpdate();
