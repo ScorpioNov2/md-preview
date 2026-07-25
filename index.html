@@ -659,7 +659,7 @@
       display: none;
     }
 
-    pre.snippet-clipboard-content {
+    /* pre.snippet-clipboard-content {
       display: flex !important;
       flex-direction: row !important;
       justify-content: space-between !important;
@@ -676,7 +676,7 @@
     pre.snippet-clipboard-content code {
       flex: 1 1 auto !important;
       overflow-x: auto !important;
-      padding-bottom: 16px !important;
+      padding-bottom: 16px !important; 
       font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace !important;
       font-size: 13.6px !important;
       line-height: 1.5 !important;
@@ -728,6 +728,73 @@
 
     .d-none {
       display: none !important;
+    } */
+    /* Thiết lập cho khối hộp bao bọc tổng thể bên ngoài */
+    div[style*="position: relative"] {
+      position: relative !important;
+      margin: 16px 0 !important;
+    }
+
+    /* Định dạng cấu trúc cho khung hiển thị code block bên trong */
+    div[style*="position: relative"] pre {
+      margin: 0 !important;
+      padding: 16px !important;
+      background-color: #f6f8fa !important;
+      border-radius: 6px !important;
+      overflow-x: auto !important;
+    }
+
+    /* Định dạng cấu trúc cho chữ bên trong thẻ code */
+    div[style*="position: relative"] code {
+      font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace !important;
+      font-size: 13.6px !important;
+      line-height: 1.5 !important;
+    }
+
+    /* Cố định nút bấm ép nó ghim vào góc bên phải phía trên */
+    .ClipboardButton {
+      position: absolute !important;
+      top: 8px !important;
+      right: 8px !important;
+      z-index: 10 !important;
+      width: 28px !important;
+      height: 28px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      color: #57606a !important;
+      background-color: transparent !important;
+      /* Đổi thành trong suốt để tiệp vào nền */
+      border: none !important;
+      /* XÓA BỎ HOÀN TOÀN ĐƯỜNG VIỀN */
+      border-radius: 6px !important;
+      /* BO GÓC NHẸ 6PX CHUẨN GITHUB */
+      cursor: pointer !important;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    /* Hiệu ứng đổi màu nền khi di chuột qua nút */
+    .ClipboardButton:hover {
+      background-color: #eaeef2 !important;
+      color: #24292f !important;
+    }
+
+
+    /* Ép các biểu tượng SVG luôn tuân thủ đúng tỷ lệ hiển thị */
+    .ClipboardButton svg {
+      width: 16px !important;
+      height: 16px !important;
+      fill: currentColor !important;
+    }
+
+    /* Lớp quản lý trạng thái ẩn phần tử */
+    .d-none {
+      display: none !important;
+    }
+
+    /* Thiết lập màu xanh lá cho icon check thành công */
+    .js-clipboard-check-icon {
+      color: #2d8345 !important;
     }
   </style>
 </head>
@@ -885,6 +952,7 @@
   <script src="js/markdown-it-katex.js"></script>
   <script src="js/highlight.min.js"></script>
   <script src="js/markdown-it-task-lists.min.js"></script>
+  <script src="js/markdown-it-code-copy.js"></script>
 
   <script>
     (function () {
@@ -959,46 +1027,70 @@
       /* ====== INIT markdown-it ====== */
       var md = null;
       if (typeof window.markdownit !== 'undefined') {
+        //   md = window.markdownit({
+        //     html: true,
+        //     linkify: true,
+        //     highlight: function (str, lang) {
+        //       var highlightedCode = '';
+
+        //       if (lang && window.hljs && window.hljs.getLanguage(lang)) {
+        //         try {
+        //           highlightedCode = window.hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
+        //         } catch (__) {
+        //           highlightedCode = md.utils.escapeHtml(str);
+        //         }
+        //       } else {
+        //         highlightedCode = md.utils.escapeHtml(str);
+        //       }
+
+        //       // var safeRawStr = encodeURIComponent(str);
+        //       var safeRawStr = encodeURIComponent(str).replace(/'/g, '%27');
+
+        //       return '<pre class="snippet-clipboard-content"><code class="hljs ' + (lang ? 'language-' + lang : '') + '">' + highlightedCode + '</code>' +
+        //         '<div class="zeroclipboard-container">' +
+        //           // '<div class="ClipboardButton" onclick="window.executeGithubCopy(this, \'' + safeRawStr + '\')" role="button" tabindex="0">' +
+        //           '<div class="ClipboardButton" onclick="window.executeGithubCopy(this, &quot;' + safeRawStr + '&quot;)" role="button" tabindex="0">' + // &quot == \"
+        //             '<!-- Icon Copy (visible by default) -->' +
+        //             '<svg class="js-clipboard-copy-icon" height="16" viewBox="0 0 16 16" version="1.1" width="16">' +
+        //               '<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>' +
+        //               '<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>' +
+        //             '</svg>' +
+        //             '<!-- Icon Check success (hidden by default) -->' +
+        //             '<svg class="js-clipboard-check-icon d-none" height="16" viewBox="0 0 16 16" version="1.1" width="16">' +
+        //               '<path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>' +
+        //             '</svg>' +
+        //           '</div>' +
+        //         '</div>' +
+        //       '</pre>';
+        //     }
+        //   });
+
+        //   // md.use(window.markdownItKatex);
+        //   // ignore warning in console
+        //   md.use(window.markdownItKatex, {
+        //     strict: "ignore",
+        //     throwOnError: false
+        //   });
+
+        //   md.use(window.markdownitTaskLists, { 
+        //     enabled: true, 
+        //     label: true 
+        //   });
+        // }
+
         md = window.markdownit({
           html: true,
           linkify: true,
           highlight: function (str, lang) {
-            var highlightedCode = '';
-
             if (lang && window.hljs && window.hljs.getLanguage(lang)) {
               try {
-                highlightedCode = window.hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
-              } catch (__) {
-                highlightedCode = md.utils.escapeHtml(str);
-              }
-            } else {
-              highlightedCode = md.utils.escapeHtml(str);
+                return window.hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
+              } catch (__) { }
             }
-
-            // var safeRawStr = encodeURIComponent(str);
-            var safeRawStr = encodeURIComponent(str).replace(/'/g, '%27');
-
-            return '<pre class="snippet-clipboard-content"><code class="hljs ' + (lang ? 'language-' + lang : '') + '">' + highlightedCode + '</code>' +
-              '<div class="zeroclipboard-container">' +
-              // '<div class="ClipboardButton" onclick="window.executeGithubCopy(this, \'' + safeRawStr + '\')" role="button" tabindex="0">' +
-              '<div class="ClipboardButton" onclick="window.executeGithubCopy(this, &quot;' + safeRawStr + '&quot;)" role="button" tabindex="0">' + // &quot == \"
-              '<!-- Icon Copy (visible by default) -->' +
-              '<svg class="js-clipboard-copy-icon" height="16" viewBox="0 0 16 16" version="1.1" width="16">' +
-              '<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>' +
-              '<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>' +
-              '</svg>' +
-              '<!-- Icon Check success (hidden by default) -->' +
-              '<svg class="js-clipboard-check-icon d-none" height="16" viewBox="0 0 16 16" version="1.1" width="16">' +
-              '<path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>' +
-              '</svg>' +
-              '</div>' +
-              '</div>' +
-              '</pre>';
+            return md.utils.escapeHtml(str);
           }
         });
 
-        // md.use(window.markdownItKatex);
-        // ignore warning in console
         md.use(window.markdownItKatex, {
           strict: "ignore",
           throwOnError: false
@@ -1007,6 +1099,25 @@
         md.use(window.markdownitTaskLists, {
           enabled: true,
           label: true
+        });
+
+        md.use(window.markdownItCodeCopy, {
+          buttonClass: 'ClipboardButton',
+          iconStyle: 'display: flex; align-items: center; justify-content: center;', // ÉP XÓA BỎ OPACITY: 0.4 (Để icon hiển thị sắc nét 100%)
+          buttonStyle: '', // Bỏ trống vì chúng ta đã viết style này trong file CSS riêng rồi
+
+          // Truyền toàn bộ cấu hình cụm Icon của bạn thay thế cho thẻ span mặc định
+          element: `
+            <!-- Icon Copy (Hiển thị mặc định) -->
+            <svg class="js-clipboard-copy-icon" height="16" viewBox="0 0 16 16" version="1.1" width="16">
+              <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+              <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+            </svg>
+            <!-- Icon Check thành công (Ẩn mặc định bằng d-none) -->
+            <svg class="js-clipboard-check-icon d-none" height="16" viewBox="0 0 16 16" version="1.1" width="16">
+              <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"></path>
+            </svg>
+          `
         });
       }
 
@@ -1751,25 +1862,25 @@
         return content;
       }
 
-      window.executeGithubCopy = function (buttonElement, encodedSourceText) {
-        var rawText = decodeURIComponent(encodedSourceText);
-        var copyIcon = buttonElement.querySelector('.js-clipboard-copy-icon');
-        var checkIcon = buttonElement.querySelector('.js-clipboard-check-icon');
+      // window.executeGithubCopy = function (buttonElement, encodedSourceText) {
+      //   var rawText = decodeURIComponent(encodedSourceText);
+      //   var copyIcon = buttonElement.querySelector('.js-clipboard-copy-icon');
+      //   var checkIcon = buttonElement.querySelector('.js-clipboard-check-icon');
 
-        navigator.clipboard.writeText(rawText).then(function () {
-          if (copyIcon) copyIcon.classList.add('d-none');
-          if (checkIcon) checkIcon.classList.remove('d-none');
-          buttonElement.classList.add('copied');
+      //   navigator.clipboard.writeText(rawText).then(function () {
+      //     if (copyIcon) copyIcon.classList.add('d-none');
+      //     if (checkIcon) checkIcon.classList.remove('d-none');
+      //     buttonElement.classList.add('copied');
 
-          setTimeout(function () {
-            if (copyIcon) copyIcon.classList.remove('d-none');
-            if (checkIcon) checkIcon.classList.add('d-none');
-            buttonElement.classList.remove('copied');
-          }, 2000);
-        }).catch(function (err) {
-          console.error("Failed to copy source code: ", err);
-        });
-      };
+      //     setTimeout(function () {
+      //       if (copyIcon) copyIcon.classList.remove('d-none');
+      //       if (checkIcon) checkIcon.classList.add('d-none');
+      //       buttonElement.classList.remove('copied');
+      //     }, 2000);
+      //   }).catch(function (err) {
+      //     console.error("Failed to copy source code: ", err);
+      //   });
+      // };
 
       function updatePreview() {
         if (!md) return;
@@ -1922,9 +2033,39 @@
       }
 
       sidebar.addEventListener('contextmenu', showCtxMenu);
+
       document.addEventListener('click', function (e) {
         if (!ctxMenu.contains(e.target)) hideCtxMenu();
+        // Xác định chính xác vị trí người dùng nhấn chuột vào nút bấm
+        var button = e.target.closest('.ClipboardButton');
+        if (!button) return;
+
+        // Đọc trực tiếp chuỗi văn bản an toàn lưu tại thuộc tính data của nút
+        var textToCopy = button.getAttribute('data-clipboard-text');
+        if (!textToCopy) return;
+
+        // Thực hiện lệnh gọi hệ thống sao chép văn bản vào Clipboard
+        navigator.clipboard.writeText(textToCopy).then(function () {
+          // Tìm các thẻ icon nằm trực tiếp bên trong nút vừa nhấn
+          var copyIcon = button.querySelector('.js-clipboard-copy-icon');
+          var checkIcon = button.querySelector('.js-clipboard-check-icon');
+
+          if (copyIcon && checkIcon) {
+            // Thực hiện hiệu ứng chuyển đổi ẩn icon copy, hiện icon check xanh
+            copyIcon.classList.add('d-none');
+            checkIcon.classList.remove('d-none');
+
+            // Tạo đồng hồ đếm ngược tự động khôi phục giao diện sau 2 giây
+            setTimeout(function () {
+              copyIcon.classList.remove('d-none');
+              checkIcon.classList.add('d-none');
+            }, 2000);
+          }
+        }).catch(function (err) {
+          console.error('Lỗi hệ thống, không thể thực hiện sao chép: ', err);
+        });
       });
+
       document.addEventListener('contextmenu', function (e) {
         if (!sidebar.contains(e.target)) hideCtxMenu();
       });
