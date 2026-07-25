@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub Workspace Replica - Đấu nối Local</title>
+  <title>GitHub Workspace Replica</title>
 
-  <!-- 1. ĐẤU NỐI STYLE THEO CẤU TRÚC THƯ MỤC MỚI CỦA BẠN -->
   <link rel="stylesheet" href="css/github-markdown.css">
   <link rel="stylesheet" href="css/katex.min.css">
 
@@ -14,6 +13,20 @@
     :root {
       --border-color: #d0d7de;
       --bg-gray: #f6f8fa;
+      --sidebar-min: 20%;
+      --sidebar-max: 40%;
+      --line-height: 20px;
+      --gutter-width: 52px;
+      --gutter-font: 500 13px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+      --green-btn: #1a7f37;
+      --green-btn-hover: #157a30;
+      --green-btn-bg: #dafbe1;
+      --red-border: #d1242f;
+      --red-bg: #ffebe9;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
@@ -26,65 +39,323 @@
       color: #1f2328;
     }
 
-    /* === THANH BÊN CÂY THƯ MỤC === */
+    /* ===== SIDEBAR ===== */
     .sidebar {
-      width: 260px;
+      width: var(--sidebar-min);
+      min-width: var(--sidebar-min);
+      max-width: var(--sidebar-max);
       border-right: 1px solid var(--border-color);
       background-color: #ffffff;
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
+      position: relative;
+      user-select: none;
+      transition: width 0.15s ease, min-width 0.15s ease, max-width 0.15s ease;
+    }
+
+    .sidebar.collapsed {
+      width: 50px !important;
+      min-width: 50px !important;
+      max-width: 50px !important;
+    }
+
+    .sidebar.collapsed .sidebar-title,
+    .sidebar.collapsed .file-tree,
+    .sidebar.collapsed .resize-handle {
+      display: none;
+    }
+
+    .sidebar.collapsed .sidebar-header {
+      padding: 10px 11px;
+      justify-content: center;
+      border-bottom: none;
+    }
+
+    .sidebar.collapsed .drop-overlay {
+      display: none !important;
     }
 
     .sidebar-header {
-      padding: 12px;
+      padding: 10px 12px;
       border-bottom: 1px solid var(--border-color);
       background-color: var(--bg-gray);
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
       gap: 8px;
     }
 
-    .sidebar-header h3 {
-      margin: 0;
-      font-size: 14px;
+    .sidebar-title {
+      font-size: 13px;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
     }
 
-    .file-input-btn {
-      font-size: 12px;
-      padding: 5px 10px;
+    .sidebar-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 28px;
+      height: 28px;
       border: 1px solid var(--border-color);
       border-radius: 6px;
       background: #ffffff;
       cursor: pointer;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #57606a;
+      padding: 0;
     }
 
+    .icon-btn:hover {
+      background: var(--bg-gray);
+      color: #1f2328;
+    }
+
+    .icon-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    /* File tree */
     .file-tree {
       flex: 1;
       overflow-y: auto;
-      padding: 10px 5px;
-      font-family: monospace;
+      overflow-x: hidden;
+      padding: 6px 0;
       font-size: 13px;
     }
 
-    .tree-item {
-      padding: 4px 8px;
-      border-radius: 4px;
-      cursor: pointer;
+    /* Empty state */
+    .tree-empty {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
+      padding: 32px 16px;
+      color: #57606a;
+      font-size: 13px;
     }
 
-    .tree-item.active {
+    .tree-empty-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      align-items: center;
+    }
+
+    .tree-empty-or {
+      font-size: 12px;
+      color: #8b949e;
+      font-weight: 500;
+      line-height: 32px;
+    }
+
+    .green-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 14px;
+      border: 1px solid var(--green-btn);
+      border-radius: 6px;
+      background: var(--green-btn-bg);
+      color: var(--green-btn);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s;
+      width: 180px;
+      height: 36px;
+    }
+
+    .green-btn:hover {
+      background: #b6e3c4;
+    }
+
+    .green-btn svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    /* Drag overlay */
+    .drop-zone {
+      position: relative;
+    }
+
+    .drop-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .drop-overlay.visible {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .drop-overlay.valid {
+      background: rgba(26, 127, 55, 0.08);
+      border: 2px dashed var(--green-btn);
+    }
+
+    .drop-overlay.valid .drop-text {
+      color: var(--green-btn);
+    }
+
+    .drop-overlay.invalid {
+      background: rgba(209, 36, 47, 0.06);
+      border: 2px dashed var(--red-border);
+    }
+
+    .drop-overlay.invalid .drop-text {
+      color: var(--red-border);
+    }
+
+    .drop-text {
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .drop-text span {
+      display: block;
+      font-size: 12px;
+      font-weight: 400;
+      margin-top: 4px;
+      opacity: 0.8;
+    }
+
+    /* Tree row */
+    .tree-row {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 28px;
+      padding-right: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .tree-row:hover {
+      background-color: rgba(208, 215, 222, 0.3);
+    }
+
+    .tree-row.active {
       background-color: #ddf4ff;
+    }
+
+    .tree-row.active .tree-name {
       color: #0969da;
       font-weight: 600;
     }
 
-    /* === KHU VỰC CHÍNH === */
+    .tree-gutter {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      pointer-events: none;
+    }
+
+    .tree-gutter-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background-color: #d8dee4;
+    }
+
+    .tree-indent {
+      flex-shrink: 0;
+    }
+
+    .tree-chevron {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 2px;
+    }
+
+    .tree-chevron svg {
+      width: 12px;
+      height: 12px;
+      fill: #57606a;
+      transition: transform 0.12s ease;
+    }
+
+    .tree-row.expanded>.tree-chevron svg {
+      transform: rotate(90deg);
+    }
+
+    .tree-icon {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      margin-right: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tree-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .tree-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #1f2328;
+    }
+
+    /* ===== RESIZE HANDLE ===== */
+    .resize-handle {
+      position: absolute;
+      top: 0;
+      right: -3px;
+      bottom: 0;
+      width: 7px;
+      cursor: col-resize;
+      z-index: 10;
+    }
+
+    .resize-handle::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 3px;
+      width: 1px;
+      background-color: transparent;
+      transition: background-color 0.15s;
+    }
+
+    .resize-handle:hover::after,
+    .resize-handle.active::after {
+      background-color: #0969da;
+    }
+
+    /* ===== MAIN CONTENT ===== */
     .main-content {
       flex: 1;
       display: flex;
@@ -92,6 +363,7 @@
       overflow: hidden;
       background-color: var(--bg-gray);
       padding: 16px;
+      min-width: 0;
     }
 
     .workspace-box {
@@ -104,7 +376,7 @@
       overflow: hidden;
     }
 
-    /* TOOLBAR GITHUB STYLE */
+    /* ===== TOOLBAR ===== */
     .github-toolbar {
       display: flex;
       justify-content: space-between;
@@ -112,6 +384,14 @@
       background-color: var(--bg-gray);
       padding: 8px 16px;
       border-bottom: 1px solid var(--border-color);
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .toggle-group {
@@ -130,13 +410,17 @@
       font-weight: 500;
       cursor: pointer;
       color: #57606a;
+      position: relative;
+    }
+
+    .toggle-btn:not(:last-child) {
+      border-right: 1px solid var(--border-color);
     }
 
     .toggle-btn.active {
       background-color: #ffffff;
       color: #1f2328;
       font-weight: 600;
-      position: relative;
     }
 
     .toggle-btn.active::after {
@@ -152,6 +436,7 @@
     .action-group {
       display: flex;
       gap: 8px;
+      align-items: center;
     }
 
     .action-btn {
@@ -162,29 +447,43 @@
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #1f2328;
     }
 
+    .action-btn:hover {
+      background: var(--bg-gray);
+    }
+
+    .action-btn svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .action-btn.toggled {
+      background: #ddf4ff;
+      border-color: #0969da;
+      color: #0969da;
+    }
+
+    /* ===== VIEW PANES ===== */
     .view-pane {
       flex: 1;
-      overflow: auto;
+      overflow: hidden;
       display: none;
     }
 
     .view-pane.active {
-      display: block;
+      display: flex;
+      flex-direction: column;
     }
 
-    textarea {
-      width: 100%;
-      height: 100%;
-      border: none;
-      padding: 24px;
-      resize: none;
-      font-family: monospace;
-      font-size: 14px;
-      outline: none;
-      box-sizing: border-box;
-      line-height: 1.6;
+    .view-pane.active#pane-preview {
+      display: block;
+      overflow: auto;
     }
 
     .markdown-body {
@@ -192,8 +491,68 @@
       background-color: #ffffff;
     }
 
-    /* Custom Style Front Matter */
-    .fm-null {
+    /* ===== CODE EDITOR WITH GUTTER ===== */
+    .editor-wrap {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .gutter {
+      width: var(--gutter-width);
+      min-width: var(--gutter-width);
+      background: #f6f8fa;
+      border-right: 1px solid var(--border-color);
+      overflow: hidden;
+      position: relative;
+      user-select: none;
+    }
+
+    .gutter-inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      will-change: transform;
+    }
+
+    .gutter-row {
+      padding: 0 12px 0 0;
+      text-align: right;
+      font: var(--gutter-font);
+      color: #57606a;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    #markdown-input {
+      flex: 1;
+      border: none;
+      padding: 0 16px;
+      resize: none;
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+      font-size: 14px;
+      line-height: var(--line-height);
+      outline: none;
+      background: #ffffff;
+      color: #1f2328;
+      tab-size: 4;
+      -moz-tab-size: 4;
+      white-space: pre;
+      overflow: auto;
+    }
+
+    #markdown-input.wrap-on {
+      white-space: pre-wrap;
+      word-break: break-all;
+      overflow-wrap: break-word;
+    }
+
+    /* ===== FRONT MATTER STYLES ===== */
+    .fm-null,
+    .fm-empty-arr,
+    .fm-empty-obj {
       opacity: 0.45;
       font-style: italic;
     }
@@ -215,362 +574,885 @@
       padding: 0.2em 0.4em;
       border-radius: 6px;
       font-size: 85%;
+      font-family: ui-monospace, SFMono-Regular, monospace;
     }
 
     markdown-accessiblity-table a {
       color: #0969da;
       text-decoration: none;
     }
+
+    markdown-accessiblity-table a:hover {
+      text-decoration: underline;
+    }
+
+    markdown-accessiblity-table div[dir="auto"] {
+      padding: 2px 0;
+    }
+
+    #folder-picker {
+      display: none;
+    }
+
+    #file-picker {
+      display: none;
+    }
   </style>
 </head>
 
 <body>
 
-  <!-- BÊN TRÁI: CÂY THƯ MỤC -->
-  <div class="sidebar">
+  <!-- SIDEBAR -->
+  <div class="sidebar drop-zone" id="sidebar">
+    <div class="drop-overlay" id="drop-overlay">
+      <div class="drop-text" id="drop-text">
+        Drop here to load file/folder
+        <span>.md and .txt only</span>
+      </div>
+    </div>
     <div class="sidebar-header">
-      <h3>📁 Workspace Folder</h3>
-      <label class="file-input-btn">
-        Mở thư mục dự án
-        <input type="file" id="folder-picker" webkitdirectory directory multiple style="display: none;">
-      </label>
+      <div class="sidebar-title">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="#57606a">
+          <path
+            d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1Z" />
+        </svg>
+        <span id="sidebar-label">File tree</span>
+      </div>
+      <div class="sidebar-actions">
+        <button class="icon-btn" id="btn-toggle-sidebar" title="Collapse sidebar">
+          <svg viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25ZM1.75 1.5a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25H5V1.5Zm4.75 13h8a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25h-8Z" />
+          </svg>
+        </button>
+      </div>
     </div>
     <div class="file-tree" id="tree-container">
-      <div style="color: #57606a; padding: 10px; font-style: italic;">Chưa chọn thư mục nào...</div>
+      <div class="tree-empty" id="tree-empty">
+        <div class="tree-empty-buttons">
+          <button class="green-btn" id="btn-open-file">
+            <svg viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z" />
+            </svg>
+            Open File
+          </button>
+          <span class="tree-empty-or">or</span>
+          <button class="green-btn" id="btn-open-folder-empty">
+            <svg viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1Z" />
+            </svg>
+            Open Folder
+          </button>
+        </div>
+      </div>
     </div>
+    <div class="resize-handle" id="resize-handle"></div>
+    <input type="file" id="folder-picker" webkitdirectory directory multiple>
+    <input type="file" id="file-picker" accept=".md,.txt">
   </div>
 
-  <!-- BÊN PHẢI: KHUNG EDIT & PREVIEW -->
+  <!-- MAIN -->
   <div class="main-content">
     <div class="workspace-box">
       <div class="github-toolbar">
-        <div class="toggle-group">
-          <button class="toggle-btn active" onclick="switchTab('preview')">Preview</button>
-          <button class="toggle-btn" onclick="switchTab('code')">Code</button>
+        <div class="toolbar-left">
+          <div class="toggle-group">
+            <button class="toggle-btn active" id="tab-preview">Preview</button>
+            <button class="toggle-btn" id="tab-code">Code</button>
+          </div>
         </div>
         <div class="action-group">
-          <button class="action-btn" onclick="copyContent()">📋 Copy</button>
-          <button class="action-btn" onclick="downloadFile()">📥 Tải xuống (.md)</button>
+          <button class="action-btn" id="btn-wrap" title="Toggle word wrap">
+            <svg viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M3.5 3h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1Zm0 3h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1 0-1Zm0 3h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1Zm0 3h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1 0-1Z" />
+              <path
+                d="M13.854 6.146a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L12.293 7 11.146 5.854a.5.5 0 1 1 .708-.708Z" />
+            </svg>
+            <span>Wrap</span>
+          </button>
+          <button class="action-btn" id="btn-copy" title="Copy content">
+            <svg viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z" />
+            </svg>
+            <span>Copy</span>
+          </button>
+          <button class="action-btn" id="btn-download" title="Download .md file">
+            <svg viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z" />
+              <path
+                d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06Z" />
+            </svg>
+            <span>Download</span>
+          </button>
         </div>
       </div>
 
       <div id="pane-preview" class="view-pane markdown-body active"></div>
+
       <div id="pane-code" class="view-pane">
-        <textarea id="markdown-input" placeholder="Mã nguồn..."></textarea>
+        <div class="editor-wrap">
+          <div class="gutter" id="gutter">
+            <div class="gutter-inner" id="gutter-inner"></div>
+          </div>
+          <textarea id="markdown-input" placeholder="Markdown source..." spellcheck="false"></textarea>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 2. ĐẤU NỐI JAVASCRIPT THEO CẤU TRÚC THƯ MỤC MỚI CỦA BẠN -->
   <script src="js/markdown-it.min.js"></script>
   <script src="js/katex.min.js"></script>
 
   <script>
-    const input = document.getElementById('markdown-input');
-    const preview = document.getElementById('pane-preview');
-    let loadedFiles = {};
-    let currentFileName = "README.md";
+    (function () {
+      'use strict';
 
-    // Đoạn text demo kiểm thử full tính năng nâng cao
-    input.value = `---
-name: gemini
-metadata:
-  {
-    "openclaw": { "emoji": "✨", "requires": { "bins": ["gemini"] } }
-  }
----
+      var LINE_HEIGHT = 20;
+      var GUTTER_BUFFER = 8;
+      var INDENT_UNIT = 16;
 
-# 🚀 Complete MD-Preview Project
-
-> [!IMPORTANT]
-> The system utilizes a local **markdown-it** core engine, operating completely offline.
-
-> [!WARNING]
-> Integrated with the **KaTeX** library for razor-sharp mathematical formula parsing.
-
-## 📊 LaTeX Math Testing
-Block Math (standalone function):
-$$
-f(x) = \\int_{-\\infty}^{\\infty} \\hat{f}(\\xi)\\,e^{2\\pi i \\xi x}\\,d\\xi
-$$
-
-Or writing mathematics directly inline (Inline Math) like $E = mc^2$ works perfectly.`;
-
-    // Khởi tạo lõi markdown-it cho phép render thẻ HTML thô
-    const md = window.markdownit({
-      html: true,
-      linkify: true,
-      typography: true
-    });
-
-    // --- LOGIC XỬ LÝ TOÁN HỌC KATEX ---
-    function renderMath(text) {
-      if (typeof katex === 'undefined') return text;
-
-      // Khối toán độc lập $$...$$
-      let processed = text.replace(/\$\$([\s\S]+?)\$\$/g, (match, math) => {
-        try { return '<div class="katex-display">' + katex.renderToString(math.trim(), { displayMode: true }) + '</div>'; }
-        catch (e) { return `<span style="color:red">${escH(match)}</span>`; }
-      });
-
-      // Khối toán trên một dòng $...$
-      processed = processed.replace(/\$([^\$\n]+?)\$/g, (match, math) => {
-        try { return katex.renderToString(math.trim(), { displayMode: false }); }
-        catch (e) { return `<span style="color:red">${escH(match)}</span>`; }
-      });
-
-      return processed;
-    }
-
-    // --- LOGIC XỬ LÝ GITHUB ALERTS ---
-    function renderAlerts(html) {
-      const alertTypes = {
-        'NOTE': { class: 'note', title: 'Note', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM6.5 7.75A.75.75 0 0 1 7.25 7h1.5a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>' },
-        'WARNING': { class: 'warning', title: 'Warning', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M6.457 1.047c.659-1.21 2.427-1.21 3.086 0l6.03 11.033c.637 1.169-.212 2.61-1.543 2.61H1.97c-1.331 0-2.18-1.441-1.543-2.61ZM8 5a.75.75 0 0 0-.75.75v3.5a.75.75 0 0 0 1.5 0v-3.5A.75.75 0 0 0 8 5Zm0 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path></svg>' },
-        'IMPORTANT': { class: 'important', title: 'Important', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M0 1.75C0 .783.783 0 1.75 0h12.5C15.217 0 16 .783 16 1.75v12.5c0 .967-.783 1.75-1.75 1.75H1.75A1.75 1.75 0 0 1 0 14.25ZM1.75 1.5a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25Zm6.25 3.5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 5Zm0 6a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"></path></svg>' }
+      /* ====== SVG ICONS ====== */
+      var SVG = {
+        chevron: '<svg viewBox="0 0 16 16" fill="#57606a"><path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06Z"/></svg>',
+        folder: '<svg viewBox="0 0 16 16" fill="#54aeff"><path d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1Z"/></svg>',
+        folderOpen: '<svg viewBox="0 0 16 16" fill="#54aeff"><path d="M.023 2.376A1.75 1.75 0 0 1 1.75 1h3.876a.75.75 0 0 1 .548.238l.924 1.012H14.25A1.75 1.75 0 0 1 16 4v.5a.75.75 0 0 1-1.5 0V4a.25.25 0 0 0-.25-.25H6.5l-.875 1.63a.75.75 0 0 1-.66.41H1.75a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V9a.75.75 0 0 1 1.5 0v5.25A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25V2.75a.75.75 0 0 1 .023-.374Z"/></svg>',
+        file: '<svg viewBox="0 0 16 16" fill="#57606a"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"/></svg>',
+        fileMd: '<svg viewBox="0 0 16 16" fill="#57606a"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"/><text x="5" y="13" font-size="7" font-weight="700" fill="#1f2328" font-family="ui-monospace,monospace">M</text></svg>'
       };
 
-      const temp = document.createElement('div');
-      temp.innerHTML = html;
+      /* ====== DOM REFS ====== */
+      var input = document.getElementById('markdown-input');
+      var preview = document.getElementById('pane-preview');
+      var gutterInner = document.getElementById('gutter-inner');
+      var sidebar = document.getElementById('sidebar');
+      var treeContainer = document.getElementById('tree-container');
+      var treeEmpty = document.getElementById('tree-empty');
+      var resizeHandle = document.getElementById('resize-handle');
+      var tabPreview = document.getElementById('tab-preview');
+      var tabCode = document.getElementById('tab-code');
+      var btnWrap = document.getElementById('btn-wrap');
+      var btnCopy = document.getElementById('btn-copy');
+      var btnDownload = document.getElementById('btn-download');
+      var btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
+      var btnOpenFile = document.getElementById('btn-open-file');
+      var btnOpenFolderEmpty = document.getElementById('btn-open-folder-empty');
+      var folderPicker = document.getElementById('folder-picker');
+      var filePicker = document.getElementById('file-picker');
+      var sidebarLabel = document.getElementById('sidebar-label');
+      var dropOverlay = document.getElementById('drop-overlay');
+      var dropText = document.getElementById('drop-text');
 
-      temp.querySelectorAll('blockquote').forEach(bq => {
-        const p = bq.querySelector('p');
-        if (!p) return;
+      var loadedFiles = {};
+      var currentFileName = 'readme.md';
+      var wordWrap = false;
+      var activeTreeRow = null;
+      var treeRoot = null;
 
-        const m = p.innerHTML.trim().match(/^\[!(NOTE|WARNING|IMPORTANT)\]/i);
-        if (m) {
-          const type = m[1].toUpperCase();
-          const cfg = alertTypes[type];
-          p.innerHTML = p.innerHTML.replace(/^\[!(NOTE|WARNING|IMPORTANT)\]/i, '');
+      var defaultData = '# github-markdown-css\n\nThe minimal amount of CSS to replicate the GitHub Markdown style.\n\nThe CSS is generated. Contributions should go to [this repo](https://github.com/ScorpioNov2/md-preview).\n\n## Demo\nIntegrated file tree offline preview is ready!';
 
-          const alertDiv = document.createElement('div');
-          alertDiv.className = `markdown-alert markdown-alert-${cfg.class}`;
-          alertDiv.innerHTML = `<p class="markdown-alert-title" dir="auto">${cfg.icon}${cfg.title}</p>${bq.innerHTML}`;
-          bq.parentNode.replaceChild(alertDiv, bq);
-        }
-      });
-      return temp.innerHTML;
-    }
+      input.value = defaultData;
 
-    // --- LOGIC PHÂN TÍCH FRONT MATTER CHUẨN XỊN CỦA BẠN ---
-    function escH(str) { return !str ? '' : String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-
-    function parseFM(text) {
-      const result = {}, lines = text.split('\n'); let i = 0;
-      while (i < lines.length) {
-        const line = lines[i];
-        const m = line.match(/^([a-zA-Z_][a-zA-Z0-9_\-]*)\s*:\s*(.*)/);
-        if (!m) { i++; continue; }
-        const key = m[1]; let valInline = m[2].trim(); i++;
-        if (!valInline) {
-          const block = [];
-          while (i < lines.length && (lines[i] === '' || /^\s/.test(lines[i]))) { block.push(lines[i]); i++; }
-          const raw2 = block.join('\n').trim();
-          const cleaned = raw2.replace(/,(\s*[}\]])/g, '$1');
-          try { result[key] = JSON.parse(cleaned); } catch (e) { result[key] = raw2; }
-        } else {
-          if ((valInline.startsWith('"') && valInline.endsWith('"')) || (valInline.startsWith("'") && valInline.endsWith("'")))
-            result[key] = valInline.slice(1, -1);
-          else { try { result[key] = JSON.parse(valInline); } catch (e) { result[key] = valInline; } }
-        }
-      }
-      return result;
-    }
-
-    function fmVal(v, depth = 0) {
-      if (v === null || v === undefined) return '<em class="fm-null">null</em>';
-      if (typeof v === 'boolean' || typeof v === 'number') return `<code>${v}</code>`;
-      if (typeof v === 'string') {
-        if (/^https?:\/\//.test(v)) return `<a href="${escH(v)}" target="_blank" rel="noopener">${escH(v)}</a>`;
-        return escH(v);
-      }
-      if (Array.isArray(v)) {
-        if (!v.length) return '<em class="fm-null">[]</em>';
-        if (v.every(x => x && typeof x === 'object' && !Array.isArray(x))) {
-          const keys = [...new Set(v.flatMap(x => Object.keys(x)))];
-          return '<table><thead><tr>' +
-            keys.map(k => `<th>${escH(k)}</th>`).join('') + '</tr></thead><tbody>' +
-            v.map(row => '<tr>' + keys.map(k => `<td><div dir="auto">${fmVal(row[k], depth + 1)}</div></td>`).join('') + '</tr>').join('') +
-            '</tbody></table>';
-        }
-        return v.map(x => typeof x === 'object' ? fmVal(x, depth + 1) : `<code>${escH(String(x))}</code>`).join(' ');
-      }
-      if (typeof v === 'object') {
-        const entries = Object.entries(v);
-        if (!entries.length) return '<em class="fm-null">{}</em>';
-        if (depth === 0) {
-          return '<table><tbody>' +
-            entries.map(([k, val]) => `<tr><th>${escH(k)}</th><td>${fmVal(val, 1)}</td></tr>`).join('') +
-            '</tbody></table>';
-        }
-        return '<table><thead><tr>' +
-          entries.map(([k]) => `<th>${escH(k)}</th>`).join('') + '</tr></thead><tbody><tr>' +
-          entries.map(([, val]) => `<td><div dir="auto">${fmVal(val, depth + 1)}</div></td>`).join('') +
-          '</tr></tbody></table>';
-      }
-      return escH(String(v));
-    }
-
-    // --- TIỆN ÍCH BIÊN DỊCH GITHUB ALERTS CHUẨN XỊN 100% ---
-    function renderAlerts(html) {
-      // GitHub định nghĩa chuẩn 5 loại Alert: NOTE, TIP, IMPORTANT, WARNING, CAUTION
-      const alertTypes = {
-        'NOTE': { class: 'note', title: 'Note', icon: '<svg class="octicon octicon-info mr-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>' },
-        'TIP': { class: 'tip', title: 'Tip', icon: '<svg class="octicon octicon-light-bulb mr-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"></path></svg>' },
-        'IMPORTANT': { class: 'important', title: 'Important', icon: '<svg class="octicon octicon-issue-opened mr-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>' },
-        'WARNING': { class: 'warning', title: 'Warning', icon: '<svg class="octicon octicon-alert mr-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>' },
-        'CAUTION': { class: 'caution', title: 'Caution', icon: '<svg class="octicon octicon-stop mr-2" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>' }
-      };
-
-      const temp = document.createElement('div');
-      temp.innerHTML = html;
-
-      temp.querySelectorAll('blockquote').forEach(bq => {
-        const p = bq.querySelector('p');
-        if (!p) return;
-
-        // Quét tìm chuỗi cấu trúc của 5 loại alert
-        const m = p.innerHTML.trim().match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
-        if (m) {
-          const type = m[1].toUpperCase();
-          const cfg = alertTypes[type];
-
-          // Xóa bỏ chuỗi thô [!WARNING] khỏi nội dung paragraph
-          p.innerHTML = p.innerHTML.replace(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i, '');
-
-          // Tạo cấu trúc phân cấp thẻ Div bọc ngoài đúng quy định css GitHub xịn
-          const alertDiv = document.createElement('div');
-          alertDiv.className = `markdown-alert markdown-alert-${cfg.class}`;
-
-          // Tiêu đề chứa icon SVG + Chữ ghi hoa đầu mục
-          alertDiv.innerHTML = `
-            <div class="markdown-alert-title">
-              ${cfg.icon}
-              ${cfg.title}
-            </div>
-            ${bq.innerHTML}
-          `;
-
-          // Thay thế nút bq cũ bằng Alert Div mới tinh sạch sẽ
-          bq.parentNode.replaceChild(alertDiv, bq);
-        }
-      });
-      return temp.innerHTML;
-    }
-
-
-    // --- HÀM TỔNG ĐIỀU PHỐI BIÊN DỊCH CHÍNH ---
-    // --- HÀM ĐIỀU PHỐI BIÊN DỊCH CHÍNH ---
-    function updatePreview() {
-      if (typeof markdownit === 'undefined') return;
-
-      let raw = input.value.trim();
-      let fmHtml = "";
-
-      // 1. Khớp và tách chuỗi Front Matter ở đầu file
-      const fmMatch = raw.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
-      if (fmMatch) {
-        const data = parseFM(fmMatch[1]); // Lấy nội dung bên trong dấu ---
-        const entries = Object.entries(data);
-        if (entries.length > 0) {
-          fmHtml = '<markdown-accessiblity-table data-catalyst=""><table><tbody>' +
-            entries.map(([k, v]) => `<tr><th>${escH(k)}</th><td>${fmVal(v, 1)}</td></tr>`).join('') +
-            '</tbody></table></markdown-accessiblity-table>';
-        }
-        raw = raw.replace(fmMatch[0], ""); // Xóa bỏ toàn bộ cụm Front Matter thô
+      /* ====== INIT markdown-it ====== */
+      var md = null;
+      if (typeof window.markdownit !== 'undefined') {
+        md = window.markdownit({ html: true, linkify: true, typography: true });
       }
 
-      // 2. Chuyển đổi Markdown thô sang chuỗi HTML bằng lõi markdown-it
-      let renderedHtml = md.render(raw);
+      /* ====================================================================
+         1. VIRTUALIZED LINE NUMBERS (langdiff logic)
+            Always 1 gutter row per logical \n line.
+            Wrap mode: each gutter row height matches visual line height.
+      ==================================================================== */
+      var gutterPool = [];
+      var gutterScheduled = false;
 
-      // 3. Gọi hàm xử lý công thức toán học LaTeX
-      renderedHtml = renderMath(renderedHtml);
+      var _measuredLH = null;
+      function getActualLineHeight() {
+        if (_measuredLH !== null) return _measuredLH;
+        var t = document.createElement('textarea');
+        t.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;'
+          + 'font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;'
+          + 'font-size:14px;line-height:20px;padding:0 16px;white-space:pre;'
+          + 'resize:none;border:none;overflow:hidden;width:100px;';
+        t.value = 'X\nX\nX';
+        document.body.appendChild(t);
+        _measuredLH = Math.round(t.scrollHeight / 3);
+        document.body.removeChild(t);
+        LINE_HEIGHT = _measuredLH;
+        return _measuredLH;
+      }
+      getActualLineHeight();
 
-      // 4. GỌI HÀM VÀO ĐÂY: Biến đổi thẻ blockquote thành các hộp Alert GitHub xịn
-      renderedHtml = renderAlerts(renderedHtml);
+      var lineMeasureDiv = null;
+      var _lastWrapWidth = 0;
+      var _lastWrapVal = '';
+      var _cachedWrapHeights = null;
 
-      // 5. Xuất kết quả cuối cùng ra màn hình Preview
-      preview.innerHTML = fmHtml + renderedHtml;
-    }
+      function ensureLineMeasureDiv() {
+        if (lineMeasureDiv) return;
+        lineMeasureDiv = document.createElement('div');
+        lineMeasureDiv.setAttribute('aria-hidden', 'true');
+        lineMeasureDiv.style.cssText =
+          'position:fixed;visibility:hidden;pointer-events:none;'
+          + 'font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;'
+          + 'font-size:14px;line-height:' + LINE_HEIGHT + 'px;'
+          + 'white-space:pre-wrap;word-break:break-all;overflow-wrap:break-word;'
+          + 'padding:0 16px;overflow:hidden;top:-9999px;left:-9999px;';
+        document.body.appendChild(lineMeasureDiv);
+      }
 
+      function measureWrapLineHeights() {
+        var val = input.value;
+        var w = input.clientWidth;
+        if (!w) return null;
+        if (val === _lastWrapVal && w === _lastWrapWidth && _cachedWrapHeights) {
+          return _cachedWrapHeights;
+        }
+        _lastWrapVal = val;
+        _lastWrapWidth = w;
+        var lines = val.split('\n');
+        if (!lines.length) { _cachedWrapHeights = null; return null; }
+        ensureLineMeasureDiv();
+        lineMeasureDiv.style.width = w + 'px';
+        lineMeasureDiv.innerHTML = '';
+        var divs = [];
+        for (var i = 0; i < lines.length; i++) {
+          var d = document.createElement('div');
+          d.textContent = lines[i] || '\u200B';
+          lineMeasureDiv.appendChild(d);
+          divs.push(d);
+        }
+        var heights = new Array(lines.length);
+        for (var i = 0; i < divs.length; i++) {
+          heights[i] = divs[i].offsetHeight;
+        }
+        _cachedWrapHeights = heights;
+        return heights;
+      }
 
-    // === HỆ THỐNG QUẢN LÝ QUÉT THƯ MỤC LOCAL ===
-    document.getElementById('folder-picker').addEventListener('change', function (e) {
-      const files = e.target.files;
-      const treeContainer = document.getElementById('tree-container');
-      treeContainer.innerHTML = "";
-      loadedFiles = {};
+      function getOrCreateGutterRow(idx) {
+        if (!gutterPool[idx]) {
+          var el = document.createElement('div');
+          el.className = 'gutter-row';
+          el.style.height = LINE_HEIGHT + 'px';
+          el.style.lineHeight = LINE_HEIGHT + 'px';
+          gutterPool[idx] = el;
+        }
+        return gutterPool[idx];
+      }
 
-      if (files.length === 0) return;
-      const sortedFiles = Array.from(files).sort((a, b) => a.webkitRelativePath.localeCompare(b.webkitRelativePath));
+      function totalLines() {
+        var val = input.value;
+        if (!val) return 1;
+        var count = 1;
+        for (var i = 0; i < val.length; i++) {
+          if (val.charCodeAt(i) === 10) count++;
+        }
+        return count;
+      }
 
-      sortedFiles.forEach(file => {
-        const pathParts = file.webkitRelativePath.split('/');
-        const fileName = pathParts[pathParts.length - 1];
-        if (file.webkitRelativePath.includes('.git/') || file.webkitRelativePath.includes('node_modules/')) return;
+      function renderGutter() {
+        gutterScheduled = false;
+        var scrollTop = input.scrollTop;
+        var clientH = input.clientHeight;
+        var total = totalLines();
+        if (clientH <= 0) return;
 
-        const item = document.createElement('div');
-        item.className = "tree-item";
-        const isMd = fileName.toLowerCase().endsWith('.md');
-        item.innerHTML = isMd ? `📄 <span>${fileName}</span>` : `📁 <span>${fileName}</span>`;
+        var wrapHeights = wordWrap ? measureWrapLineHeights() : null;
+        var cumTops = null;
 
-        const reader = new FileReader();
-        reader.onload = function (evt) {
-          loadedFiles[file.webkitRelativePath] = evt.target.result;
-          if (fileName.toLowerCase() === 'readme.md') {
-            document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
-            item.classList.add('active');
-            currentFileName = fileName;
-            input.value = evt.target.result;
-            updatePreview();
+        var start, end;
+        if (wrapHeights) {
+          cumTops = [0];
+          for (var k = 1; k < total; k++) cumTops[k] = cumTops[k - 1] + wrapHeights[k - 1];
+          start = 0; end = total - 1;
+          for (var i = 0; i < total; i++) {
+            if (cumTops[i] + wrapHeights[i] > scrollTop) { start = Math.max(0, i - GUTTER_BUFFER); break; }
           }
-        };
-        reader.readAsText(file);
+          for (var j = total - 1; j >= 0; j--) {
+            if (cumTops[j] < scrollTop + clientH) { end = Math.min(total - 1, j + GUTTER_BUFFER); break; }
+          }
+        } else {
+          var firstVisible = Math.max(0, Math.floor(scrollTop / LINE_HEIGHT));
+          var lastVisible = Math.ceil((scrollTop + clientH) / LINE_HEIGHT);
+          start = Math.max(0, firstVisible - GUTTER_BUFFER);
+          end = Math.min(total - 1, lastVisible + GUTTER_BUFFER);
+        }
 
-        item.addEventListener('click', () => {
-          document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
-          item.classList.add('active');
-          currentFileName = fileName;
-          input.value = loadedFiles[file.webkitRelativePath] || "# File không chứa dữ liệu văn bản thô.";
-          updatePreview();
-        });
-        treeContainer.appendChild(item);
+        var frag = document.createDocumentFragment();
+        for (var i = start; i <= end; i++) {
+          var row = getOrCreateGutterRow(i - start);
+          row.textContent = String(i + 1);
+          if (wrapHeights) {
+            var h = wrapHeights[i] || LINE_HEIGHT;
+            row.style.height = h + 'px';
+            row.style.lineHeight = h + 'px';
+          } else {
+            row.style.height = LINE_HEIGHT + 'px';
+            row.style.lineHeight = LINE_HEIGHT + 'px';
+          }
+          frag.appendChild(row);
+        }
+        gutterInner.replaceChildren(frag);
+
+        if (cumTops) {
+          gutterInner.style.transform = 'translateY(' + (cumTops[start] - scrollTop) + 'px)';
+        } else {
+          gutterInner.style.transform = 'translateY(' + (start * LINE_HEIGHT - scrollTop) + 'px)';
+        }
+      }
+
+      function scheduleGutterUpdate() {
+        if (gutterScheduled) return;
+        gutterScheduled = true;
+        requestAnimationFrame(renderGutter);
+      }
+
+      input.addEventListener('scroll', function () { scheduleGutterUpdate(); });
+      input.addEventListener('input', function () { updatePreview(); scheduleGutterUpdate(); });
+      window.addEventListener('resize', function () { _cachedWrapHeights = null; _lastWrapVal = ''; scheduleGutterUpdate(); });
+
+      /* ====================================================================
+         2. WORD WRAP TOGGLE
+      ==================================================================== */
+      btnWrap.addEventListener('click', function () {
+        wordWrap = !wordWrap;
+        input.classList.toggle('wrap-on', wordWrap);
+        btnWrap.classList.toggle('toggled', wordWrap);
+        _cachedWrapHeights = null;
+        _lastWrapVal = '';
+        scheduleGutterUpdate();
       });
-    });
 
-    // === CÁC NÚT CHỨC NĂNG TOOLBAR ===
-    function copyContent() {
-      navigator.clipboard.writeText(input.value).then(() => alert("Đã sao chép vào clipboard!"))
-        .catch(() => {
-          const t = document.createElement("textarea"); t.value = input.value;
-          document.body.appendChild(t); t.select(); document.execCommand('copy');
-          document.body.removeChild(t); alert("Đã sao chép vào clipboard! (Dự phòng)");
+      /* ====================================================================
+         3. TAB KEY = 4 SPACES
+      ==================================================================== */
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          var start = input.selectionStart;
+          var end = input.selectionEnd;
+          var val = input.value;
+
+          if (e.shiftKey) {
+            var beforeSel = val.substring(0, start);
+            var afterSel = val.substring(end);
+            var lineStart = beforeSel.lastIndexOf('\n') + 1;
+            var fullSel = val.substring(lineStart, end);
+            var lines = fullSel.split('\n');
+            var newLines = lines.map(function (line) {
+              if (line.startsWith('    ')) return line.substring(4);
+              if (line.startsWith('   ')) return line.substring(3);
+              if (line.startsWith('  ')) return line.substring(2);
+              if (line.startsWith(' ')) return line.substring(1);
+              return line;
+            });
+            var newText = newLines.join('\n');
+            input.value = val.substring(0, lineStart) + newText + afterSel;
+            input.selectionStart = lineStart;
+            input.selectionEnd = lineStart + newText.length;
+          } else {
+            input.value = val.substring(0, start) + '    ' + val.substring(end);
+            input.selectionStart = input.selectionEnd = start + 4;
+          }
+          updatePreview();
+          scheduleGutterUpdate();
+        }
+      });
+
+      /* ====================================================================
+         4. RESIZABLE SIDEBAR (20% - 40%)
+      ==================================================================== */
+      var isResizing = false;
+
+      resizeHandle.addEventListener('mousedown', function (e) {
+        isResizing = true;
+        resizeHandle.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+      });
+
+      document.addEventListener('mousemove', function (e) {
+        if (!isResizing) return;
+        var totalW = window.innerWidth;
+        var pct = (e.clientX / totalW) * 100;
+        pct = Math.max(20, Math.min(40, pct));
+        sidebar.style.width = pct + '%';
+        sidebar.style.minWidth = pct + '%';
+        sidebar.style.maxWidth = pct + '%';
+      });
+
+      document.addEventListener('mouseup', function () {
+        if (!isResizing) return;
+        isResizing = false;
+        resizeHandle.classList.remove('active');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      });
+
+      /* ====================================================================
+         5. DRAG & DROP (sidebar, .md/.txt only)
+      ==================================================================== */
+      var dragCounter = 0;
+
+      sidebar.addEventListener('dragenter', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        dragCounter++;
+        var items = e.dataTransfer.items;
+        var valid = true;
+        if (items && items.length) {
+          for (var i = 0; i < items.length; i++) {
+            if (items[i].kind === 'file') {
+              var ext = (items[i].name || '').split('.').pop().toLowerCase();
+              if (ext !== 'md' && ext !== 'txt') { valid = false; break; }
+            }
+          }
+        }
+        dropOverlay.className = 'drop-overlay visible ' + (valid ? 'valid' : 'invalid');
+        dropText.innerHTML = valid
+          ? 'Drop here to load file/folder<span>.md and .txt only</span>'
+          : 'Only .md and .txt files are supported';
+      });
+
+      sidebar.addEventListener('dragover', function (e) { e.preventDefault(); e.stopPropagation(); });
+
+      sidebar.addEventListener('dragleave', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        dragCounter--;
+        if (dragCounter <= 0) { dragCounter = 0; dropOverlay.className = 'drop-overlay'; }
+      });
+
+      sidebar.addEventListener('drop', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        dragCounter = 0;
+        dropOverlay.className = 'drop-overlay';
+        var files = e.dataTransfer.files;
+        if (!files.length) return;
+        var allValid = true;
+        for (var i = 0; i < files.length; i++) {
+          var ext = files[i].name.split('.').pop().toLowerCase();
+          if (ext !== 'md' && ext !== 'txt') { allValid = false; break; }
+        }
+        if (!allValid) {
+          dropOverlay.className = 'drop-overlay visible invalid';
+          dropText.innerHTML = 'Only .md and .txt files are supported';
+          setTimeout(function () { dropOverlay.className = 'drop-overlay'; }, 1500);
+          return;
+        }
+        loadFiles(files);
+      });
+
+      /* ====================================================================
+         6. SIDEBAR COLLAPSE / EXPAND & FILE / FOLDER PICKERS
+      ==================================================================== */
+      var sidebarCollapsed = false;
+      var prevSidebarWidth = null;
+
+      btnToggleSidebar.addEventListener('click', function () {
+        sidebarCollapsed = !sidebarCollapsed;
+        if (sidebarCollapsed) {
+          prevSidebarWidth = sidebar.style.width || '';
+          sidebar.classList.add('collapsed');
+          btnToggleSidebar.title = 'Expand sidebar';
+        } else {
+          sidebar.classList.remove('collapsed');
+          btnToggleSidebar.title = 'Collapse sidebar';
+          if (prevSidebarWidth) {
+            sidebar.style.width = prevSidebarWidth;
+            sidebar.style.minWidth = prevSidebarWidth;
+            sidebar.style.maxWidth = prevSidebarWidth;
+          }
+        }
+        setTimeout(function () { _cachedWrapHeights = null; _lastWrapVal = ''; scheduleGutterUpdate(); }, 200);
+      });
+
+      btnOpenFile.addEventListener('click', function () { filePicker.click(); });
+      btnOpenFolderEmpty.addEventListener('click', function () { folderPicker.click(); });
+
+      filePicker.addEventListener('change', function (e) {
+        if (!e.target.files.length) return;
+        loadFiles(e.target.files);
+      });
+
+      folderPicker.addEventListener('change', function (e) {
+        if (!e.target.files.length) return;
+        loadFiles(e.target.files, true);
+      });
+
+      function loadFiles(files, isFolder) {
+        loadedFiles = {};
+        activeTreeRow = null;
+
+        if (isFolder) {
+          var filePromises = Array.from(files).map(function (file) {
+            var parts = file.webkitRelativePath.split('/');
+            if (parts.some(function (p) { return p === '.git' || p === '.DS_Store' || p === 'node_modules'; })) return Promise.resolve(null);
+            return new Promise(function (resolve) {
+              var reader = new FileReader();
+              reader.onload = function (evt) { loadedFiles[file.webkitRelativePath] = evt.target.result; resolve(file); };
+              reader.onerror = function () { resolve(null); };
+              reader.readAsText(file);
+            });
+          });
+          Promise.all(filePromises).then(function (resolved) {
+            var validFiles = resolved.filter(function (f) { return f !== null; });
+            treeRoot = buildTree(validFiles);
+            renderTree(treeRoot);
+            treeEmpty.style.display = 'none';
+            var allPaths = Object.keys(loadedFiles);
+            var readmePath = allPaths.find(function (p) { return p.split('/').pop().toLowerCase() === 'readme.md'; })
+              || allPaths.find(function (p) { return p.toLowerCase().endsWith('.md'); });
+            if (readmePath) selectFileInTree(readmePath);
+            sidebarLabel.textContent = validFiles.length ? validFiles[0].webkitRelativePath.split('/')[0] : 'File tree';
+          });
+        } else {
+          var promises = Array.from(files).map(function (file) {
+            return new Promise(function (resolve) {
+              var reader = new FileReader();
+              reader.onload = function (evt) { loadedFiles[file.name] = evt.target.result; resolve(file); };
+              reader.onerror = function () { resolve(null); };
+              reader.readAsText(file);
+            });
+          });
+          Promise.all(promises).then(function (resolved) {
+            var validFiles = resolved.filter(function (f) { return f !== null; });
+            var fakeFiles = validFiles.map(function (f) {
+              return { name: f.name, webkitRelativePath: f.name, isMd: f.name.toLowerCase().endsWith('.md') };
+            });
+            treeRoot = buildFlatTree(fakeFiles);
+            renderTree(treeRoot);
+            treeEmpty.style.display = 'none';
+            sidebarLabel.textContent = validFiles.length === 1 ? validFiles[0].name : 'Files';
+            if (validFiles.length) selectFileInTree(validFiles[0].name);
+          });
+        }
+      }
+
+      function selectFileInTree(path) {
+        var name = path.split('/').pop();
+        currentFileName = name;
+        input.value = loadedFiles[path] || '# Unable to read this file.';
+        updatePreview();
+        scheduleGutterUpdate();
+        var row = treeContainer.querySelector('.tree-row[data-path="' + CSS.escape(path) + '"]');
+        if (row) {
+          if (activeTreeRow) activeTreeRow.classList.remove('active');
+          row.classList.add('active');
+          activeTreeRow = row;
+        }
+      }
+
+      /* ====================================================================
+         7. COLLAPSIBLE TREE WITH GUTTER LINES
+      ==================================================================== */
+      function buildTree(files) {
+        var root = { name: '', children: {}, isFolder: true, expanded: true, path: '' };
+        var sorted = files.sort(function (a, b) { return a.webkitRelativePath.localeCompare(b.webkitRelativePath); });
+        sorted.forEach(function (file) {
+          var parts = file.webkitRelativePath.split('/');
+          var node = root;
+          for (var i = 0; i < parts.length; i++) {
+            var part = parts[i], isLast = i === parts.length - 1, isMd = part.toLowerCase().endsWith('.md');
+            if (!node.children[part]) {
+              node.children[part] = { name: part, children: {}, isFolder: !isLast, expanded: false, path: parts.slice(0, i + 1).join('/'), isMd: isLast && isMd, fileEntry: isLast ? file : null };
+            } else if (isLast) {
+              node.children[part].fileEntry = file;
+              node.children[part].isMd = isMd;
+            }
+            node = node.children[part];
+          }
         });
-    }
+        Object.values(root.children).forEach(function (c) { if (c.isFolder) c.expanded = true; });
+        return root;
+      }
 
-    // Tải xuống file lưu giữ tên file linh hoạt từ cây thư mục
-    function downloadFile() {
-      const blob = new Blob([input.value], { type: "text/markdown;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url;
-      a.download = currentFileName.toLowerCase().endsWith('.md') ? currentFileName : "README.md";
-      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    }
+      function buildFlatTree(items) {
+        var root = { name: '', children: {}, isFolder: true, expanded: true, path: '' };
+        items.forEach(function (item) {
+          root.children[item.name] = { name: item.name, children: {}, isFolder: false, expanded: false, path: item.webkitRelativePath || item.name, isMd: item.isMd || item.name.toLowerCase().endsWith('.md'), fileEntry: item };
+        });
+        return root;
+      }
 
-    // Điều hướng tab Preview / Code mượt mà
-    function switchTab(name) {
-      document.querySelectorAll('.toggle-group .toggle-btn, .workspace-box .view-pane').forEach(el => el.classList.remove('active'));
-      window.event.target.classList.add('active');
-      document.getElementById(`pane-${name}`).classList.add('active');
-      if (name === 'preview') updatePreview();
-    }
+      function sortChildren(node) {
+        var entries = Object.entries(node.children);
+        entries.sort(function (a, b) {
+          if (a[1].isFolder && !b[1].isFolder) return -1;
+          if (!a[1].isFolder && b[1].isFolder) return 1;
+          return a[0].localeCompare(b[0], undefined, { sensitivity: 'base' });
+        });
+        return entries;
+      }
 
-    // Theo dõi thao tác bàn phím thời gian thực
-    input.addEventListener('input', updatePreview);
-    updatePreview();
+      function renderTree(rootNode) {
+        var oldRows = treeContainer.querySelectorAll('.tree-row');
+        oldRows.forEach(function (r) { r.remove(); });
+        if (!Object.keys(rootNode.children).length) { treeEmpty.style.display = ''; return; }
+        treeEmpty.style.display = 'none';
+
+        function addGutterLines(row, depth) {
+          var g = document.createElement('span');
+          g.className = 'tree-gutter';
+          g.style.left = '0';
+          g.style.width = (depth * INDENT_UNIT) + 'px';
+          row.appendChild(g);
+          for (var d = 1; d <= depth; d++) {
+            var line = document.createElement('span');
+            line.className = 'tree-gutter-line';
+            line.style.left = (d * INDENT_UNIT - 8) + 'px';
+            g.appendChild(line);
+          }
+        }
+
+        function createRow(node, depth) {
+          var row = document.createElement('div');
+          row.className = 'tree-row' + (node.expanded ? ' expanded' : '');
+          row.dataset.path = node.path;
+
+          var indent = document.createElement('span');
+          indent.className = 'tree-indent';
+          indent.style.width = (depth * INDENT_UNIT) + 'px';
+          row.appendChild(indent);
+
+          if (node.isFolder) {
+            var chev = document.createElement('span');
+            chev.className = 'tree-chevron';
+            chev.innerHTML = SVG.chevron;
+            row.appendChild(chev);
+          } else {
+            var sp = document.createElement('span');
+            sp.style.width = '18px'; sp.style.flexShrink = '0';
+            row.appendChild(sp);
+          }
+
+          var icon = document.createElement('span');
+          icon.className = 'tree-icon';
+          icon.innerHTML = node.isFolder ? (node.expanded ? SVG.folderOpen : SVG.folder) : (node.isMd ? SVG.fileMd : SVG.file);
+          row.appendChild(icon);
+
+          var name = document.createElement('span');
+          name.className = 'tree-name';
+          name.textContent = node.name;
+          row.appendChild(name);
+
+          addGutterLines(row, depth);
+
+          row.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (node.isFolder) {
+              node.expanded = !node.expanded;
+              renderTree(treeRoot);
+            } else {
+              if (activeTreeRow) activeTreeRow.classList.remove('active');
+              row.classList.add('active');
+              activeTreeRow = row;
+              currentFileName = node.name;
+              input.value = loadedFiles[node.path] || '# Unable to read this file.';
+              updatePreview();
+              scheduleGutterUpdate();
+            }
+          });
+          return row;
+        }
+
+        function renderNode(node, depth, container) {
+          if (node.isFolder && !node.expanded) {
+            if (node.name) container.appendChild(createRow(node, depth));
+            return;
+          }
+          if (node.name) container.appendChild(createRow(node, depth));
+          if (node.isFolder) {
+            sortChildren(node).forEach(function (entry) { renderNode(entry[1], depth + 1, container); });
+          }
+        }
+
+        sortChildren(rootNode).forEach(function (entry) { renderNode(entry[1], 0, treeContainer); });
+      }
+
+      /* ====================================================================
+         8. TAB SWITCHING
+      ==================================================================== */
+      function switchTab(tabName) {
+        tabPreview.classList.toggle('active', tabName === 'preview');
+        tabCode.classList.toggle('active', tabName === 'code');
+        document.getElementById('pane-preview').classList.toggle('active', tabName === 'preview');
+        document.getElementById('pane-code').classList.toggle('active', tabName === 'code');
+        if (tabName === 'preview') updatePreview();
+        if (tabName === 'code') scheduleGutterUpdate();
+      }
+
+      tabPreview.addEventListener('click', function () { switchTab('preview'); });
+      tabCode.addEventListener('click', function () { switchTab('code'); });
+
+      /* ====================================================================
+         9. COPY & DOWNLOAD
+      ==================================================================== */
+      btnCopy.addEventListener('click', function () {
+        navigator.clipboard.writeText(input.value).then(function () {
+          btnCopy.querySelector('span').textContent = 'Copied!';
+          setTimeout(function () { btnCopy.querySelector('span').textContent = 'Copy'; }, 1500);
+        }).catch(function () {
+          var ta = document.createElement('textarea');
+          ta.value = input.value;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          btnCopy.querySelector('span').textContent = 'Copied!';
+          setTimeout(function () { btnCopy.querySelector('span').textContent = 'Copy'; }, 1500);
+        });
+      });
+
+      btnDownload.addEventListener('click', function () {
+        var blob = new Blob([input.value], { type: 'text/markdown;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = currentFileName.toLowerCase().endsWith('.md') ? currentFileName : 'README.md';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+
+      /* ====================================================================
+         10. MARKDOWN PREVIEW (markdown-it + KaTeX + GitHub Alerts)
+      ==================================================================== */
+      function escH(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      /* --- KaTeX Math Rendering --- */
+      function renderMath(text) {
+        if (typeof katex === 'undefined') return text;
+        var processed = text.replace(/\$\$([\s\S]+?)\$\$/g, function (match, math) {
+          try { return '<div class="katex-display">' + katex.renderToString(math.trim(), { displayMode: true }) + '</div>'; }
+          catch (e) { return '<span style="color:red">' + escH(match) + '</span>'; }
+        });
+        processed = processed.replace(/\$([^\$\n]+?)\$/g, function (match, math) {
+          try { return katex.renderToString(math.trim(), { displayMode: false }); }
+          catch (e) { return '<span style="color:red">' + escH(match) + '</span>'; }
+        });
+        return processed;
+      }
+
+      /* --- GitHub Alerts (5 types) --- */
+      function renderAlerts(html) {
+        var alertTypes = {
+          'NOTE': { css: 'note', title: 'Note', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1.5a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>' },
+          'TIP': { css: 'tip', title: 'Tip', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"/></svg>' },
+          'IMPORTANT': { css: 'important', title: 'Important', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>' },
+          'WARNING': { css: 'warning', title: 'Warning', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>' },
+          'CAUTION': { css: 'caution', title: 'Caution', icon: '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>' }
+        };
+
+        var temp = document.createElement('div');
+        temp.innerHTML = html;
+
+        temp.querySelectorAll('blockquote').forEach(function (bq) {
+          var p = bq.querySelector('p');
+          if (!p) return;
+          var m = p.innerHTML.trim().match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
+          if (m) {
+            var type = m[1].toUpperCase();
+            var cfg = alertTypes[type];
+            p.innerHTML = p.innerHTML.replace(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i, '');
+            var alertDiv = document.createElement('div');
+            alertDiv.className = 'markdown-alert markdown-alert-' + cfg.css;
+            alertDiv.innerHTML = '<div class="markdown-alert-title">' + cfg.icon + ' ' + cfg.title + '</div>' + bq.innerHTML;
+            bq.parentNode.replaceChild(alertDiv, bq);
+          }
+        });
+        return temp.innerHTML;
+      }
+
+      /* --- Front Matter Parsing --- */
+      function parseFM(text) {
+        var result = {}, lines = text.split('\n'), i = 0;
+        while (i < lines.length) {
+          var line = lines[i], m = line.match(/^([a-zA-Z_][a-zA-Z0-9_\-]*)\s*:\s*(.*)/);
+          if (!m) { i++; continue; }
+          var key = m[1], valInline = m[2].trim(); i++;
+          if (!valInline) {
+            var block = [];
+            while (i < lines.length && (lines[i] === '' || /^\s/.test(lines[i]))) { block.push(lines[i]); i++; }
+            var raw2 = block.join('\n').trim(), cleaned = raw2.replace(/,(\s*[}\]])/g, '$1');
+            try { result[key] = JSON.parse(cleaned); } catch (e) { result[key] = raw2; }
+          } else {
+            if ((valInline.startsWith('"') && valInline.endsWith('"')) || (valInline.startsWith("'") && valInline.endsWith("'"))) result[key] = valInline.slice(1, -1);
+            else { try { result[key] = JSON.parse(valInline); } catch (e) { result[key] = valInline; } }
+          }
+        }
+        return result;
+      }
+
+      function fmVal(v, depth) {
+        if (depth === undefined) depth = 0;
+        if (v === null || v === undefined) return '<em class="fm-null">null</em>';
+        if (typeof v === 'boolean' || typeof v === 'number') return '<code>' + v + '</code>';
+        if (typeof v === 'string') {
+          if (/^https?:\/\//.test(v)) return '<a href="' + escH(v) + '" target="_blank" rel="nofollow noopener">' + escH(v) + '</a>';
+          return escH(v);
+        }
+        if (Array.isArray(v)) {
+          if (!v.length) return '<em class="fm-empty-arr">[]</em>';
+          if (v.every(function (x) { return x && typeof x === 'object' && !Array.isArray(x); })) {
+            var keys = [];
+            v.forEach(function (x) { Object.keys(x).forEach(function (k) { if (keys.indexOf(k) === -1) keys.push(k); }); });
+            return '<table><thead><tr>' + keys.map(function (k) { return '<th>' + escH(k) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+              v.map(function (row) { return '<tr>' + keys.map(function (k) { return '<td><div dir="auto">' + fmVal(row[k], depth + 1) + '</div></td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>';
+          }
+          return v.map(function (x) { return typeof x === 'object' ? fmVal(x, depth + 1) : '<code>' + escH(String(x)) + '</code>'; }).join(' ');
+        }
+        if (typeof v === 'object') {
+          var entries = Object.entries(v);
+          if (!entries.length) return '<em class="fm-empty-obj">{}</em>';
+          if (depth === 0) return '<table><tbody>' + entries.map(function (e) { return '<tr><th>' + escH(e[0]) + '</th><td>' + fmVal(e[1], 1) + '</td></tr>'; }).join('') + '</tbody></table>';
+          return '<table><thead><tr>' + entries.map(function (e) { return '<th>' + escH(e[0]) + '</th>'; }).join('') + '</tr></thead><tbody><tr>' +
+            entries.map(function (e) { return '<td><div dir="auto">' + fmVal(e[1], depth + 1) + '</div></td>'; }).join('') + '</tr></tbody></table>';
+        }
+        return escH(String(v));
+      }
+
+      /* --- Main Preview Pipeline --- */
+      function updatePreview() {
+        if (!md) return;
+
+        var rawContent = input.value.trim(), htmlResult = '';
+        var frontMatterMatch = rawContent.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+        if (frontMatterMatch) {
+          var fmText = frontMatterMatch[1], markdownBody = rawContent.replace(frontMatterMatch[0], '');
+          var data = parseFM(fmText), entries = Object.entries(data), tableHtml = '';
+          if (entries.length > 0) {
+            tableHtml = '<markdown-accessiblity-table data-catalyst=""><table><tbody>' +
+              entries.map(function (e) { return '<tr><th>' + escH(e[0]) + '</th><td>' + fmVal(e[1], 1) + '</td></tr>'; }).join('') + '</tbody></table></markdown-accessiblity-table>';
+          }
+          var rendered = md.render(markdownBody);
+          rendered = renderMath(rendered);
+          rendered = renderAlerts(rendered);
+          htmlResult = tableHtml + rendered;
+        } else {
+          var rendered = md.render(rawContent);
+          rendered = renderMath(rendered);
+          rendered = renderAlerts(rendered);
+          htmlResult = rendered;
+        }
+        preview.innerHTML = htmlResult;
+      }
+
+      updatePreview();
+      scheduleGutterUpdate();
+
+    })();
   </script>
+
 </body>
 
 </html>
-
-<!-- double render alerts function -->
