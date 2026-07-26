@@ -1019,11 +1019,33 @@
 
       /* Giữ tỷ lệ tự nhiên để không bị vỡ hoặc kéo giãn chữ */
       /* max width svg */
-      max-width: 60% !important;
+      max-width: 100% !important;
       /* Chiều cao tự động co giãn */
-      height: auto !important;
+      height: 600px !important;
     }
 
+    /* ============================================
+    Pan Zoom SVG
+    ============================================ */
+    /* Khung chứa sơ đồ Mermaid có tính năng Zoom */
+    .mermaid-zoom-container {
+      width: 100%;
+      height: 600px;
+      border-radius: 6px;
+      background-color: #f6f8fa;
+      /* overflow: hidden; */
+      cursor: grab;
+      margin: 20px 0;
+    }
+
+    .mermaid-zoom-container:active {
+      cursor: grabbing;
+    }
+
+    .mermaid-zoom-container svg {
+      width: 100% !important;
+      height: 100% !important;
+    }
 
     /* ============================================
     KBD plugin - builtin in github.css
@@ -1244,6 +1266,7 @@
   <script src="js/markdown-it-implicit-figures.js"></script>
   <script src="js/purify.min.js"></script>
   <script src="js/markdown-it-video.js"></script>
+  <script src="js/svg-pan-zoom.min.js"></script>
 
   <script>
     if (window.mermaid) {
@@ -1251,7 +1274,6 @@
         startOnLoad: false,
         theme: 'default'
       });
-
     } else {
       console.error("Chưa tải được file thư viện js/mermaid.min.js, hãy kiểm tra lại đường dẫn!");
     }
@@ -1337,7 +1359,7 @@
           highlight: function (str, lang) {
             // 🎯 1. BẮT ĐÚNG BLOCK MERMAID ĐỂ XUẤT RA THẺ DIV CHỨA TEXT THÔ
             if (lang === 'mermaid') {
-              return '<div class="mermaid">' + md.utils.escapeHtml(str) + '</div>';
+              return `<div class="mermaid-zoom-container"><pre class="mermaid">${md.utils.escapeHtml(str)}</pre></div>`;
             }
 
             if (lang && window.hljs && window.hljs.getLanguage(lang)) {
@@ -1396,7 +1418,6 @@
           linkClass: 'toc-link',               // Class của thẻ <a> liên kết
           listType: 'ul'                       // Định dạng danh sách dạng dấu chấm tròn (hoặc 'ol' nếu muốn đánh số 1,2,3)
         });
-
 
         md.use(window.markdownitEmoji);
 
@@ -2299,40 +2320,65 @@
         preview.innerHTML = htmlResult;
 
         // =====================================
-        // MERMAID
-        // =====================================
-        // 🎯 GỌI LỆNH NÀY ĐỂ HOÀN TẤT VẼ SƠ ĐỒ LÊN MÀN HÌNH
-        // if (window.mermaid) {
-        //   window.mermaid.run({
-        //     nodes: document.querySelectorAll('.mermaid')
-        //   });
-        // }
-
-        // =====================================
-        // MERMAID (Đã sửa lỗi Uncaught in Promise)
+        // MERMAID (Đã sửa lỗi Uncaught in Promise, Tích hợp Zoom/Pan & Nền Ô Gạch Caro)
         // =====================================
         if (window.mermaid && typeof window.mermaid.run === 'function') {
 
-          // 1. Cấp ID ngẫu nhiên cho từng khối sơ đồ để không bị trùng lặp khi render real-time
+          // 1. Tắt tính năng tự động quét lỗi thời của Mermaid để kiểm soát bằng mã lệnh
+          // window.mermaid.initialize({
+          //   startOnLoad: false,
+          //   suppressErrors: true,
+          //   flowchart: { useMaxWidth: false } // Tắt ép kích thước để ảnh phóng to/thu nhỏ không bị vỡ nét
+          // });
+
+          // 2. Thuật toán nâng cao: Tự tạo chiếc hộp bọc nền gạch Caro quanh sơ đồ Mermaid
           document.querySelectorAll('.mermaid').forEach(function (el, index) {
+            // Ép tạo ID ngẫu nhiên chống trùng lặp dữ liệu real-time
             if (!el.getAttribute('id')) {
               el.setAttribute('id', 'mermaid-block-' + index + '-' + (window.crypto?.randomUUID ? crypto.randomUUID() : Date.now()));
             }
+
+            // Nếu khối code này chưa được bọc hộp Canvas nền gạch, ta tiến hành bọc nó lại bằng JS
+            if (!el.parentElement.classList.contains('mermaid-zoom-container')) {
+              var wrapper = document.createElement('div');
+              wrapper.className = 'mermaid-zoom-container'; // Gọi class CSS ô gạch caro của bạn
+              el.parentNode.insertBefore(wrapper, el);
+              wrapper.appendChild(el);
+            }
           });
 
-          // 2. Gọi lệnh vẽ và thêm .catch() để triệt tiêu hoàn toàn lỗi đỏ ở Console
-          window.mermaid.run({
-            nodes: document.querySelectorAll('.mermaid'),
-            suppressErrors: true // Thắt chặt cấu hình, không cho tự in lỗi nội bộ
-          })
-            .then(function () {
-              // Vẽ thành công, giữ giao diện sạch sẽ
-            })
-            .catch(function (err) {
-              // Bắt trọn toàn bộ lỗi Promise xung đột thầm lặng và nuốt trôi nó
-            });
+          // 3. Hàm kích hoạt vẽ ĐỒNG BỘ và gắn chặt bộ điều khiển chuột
+          async function runMermaidWithZoom() {
+            try {
+              await window.mermaid.run({
+                querySelector: '.mermaid',
+                // Callback này tự động chạy chính xác NGAY SAU KHI sơ đồ được vẽ xong
+                postRenderCallback: function (id) {
+                  var svgElement = document.getElementById(id);
 
+                  // Kiểm tra xem thư viện svg-pan-zoom local của bạn đã được tải lên chưa
+                  if (svgElement && typeof svgPanZoom !== 'undefined') {
+                    svgPanZoom(svgElement, {
+                      zoomEnabled: true,           // Bật cuộn chuột để Zoom
+                      controlIconsEnabled: true,   // Hiện bảng điều khiển +, -, Reset ở góc hộp
+                      fit: true,                   // Tự co giãn vừa vặn khung hình lúc đầu
+                      center: true,                // Đưa sơ đồ lướt ra CHÍNH GIỮA hộp
+                      minZoom: 0.1,                // Giới hạn thu nhỏ
+                      maxZoom: 10,                 // Giới hạn phóng to
+                      mouseWheelZoomEnabled: true  // Kích hoạt Zoom bằng bánh xe chuột giữa
+                    });
+                  }
+                }
+              });
+            } catch (err) {
+              // Bắt trọn toàn bộ lỗi Promise thầm lặng của hệ thống render real-time
+            }
+          }
+
+          // 4. Kích hoạt luồng chạy duy nhất
+          runMermaidWithZoom();
         }
+
       }
 
       /* ====================================================================
