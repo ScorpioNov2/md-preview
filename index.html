@@ -1023,6 +1023,11 @@
       /* Chiều cao tự động co giãn */
       height: auto !important;
     }
+
+
+    /* ============================================
+    KBD plugin - builtin in github.css
+    ============================================ */
   </style>
 </head>
 
@@ -1193,6 +1198,7 @@
   <script src="js/markdown-it-deflist.min.js"></script>
   <script src="js/mermaid-it-markdown.js"></script>
   <script src="js/mermaid.min.js"></script>
+  <script src="js/markdown-it-kbd.js"></script>
 
   <script>
     if (window.mermaid) {
@@ -1381,6 +1387,9 @@
 
         // Deflist
         md.use(window.markdownitDeflist);
+
+        // Kbd
+        md.use(window.markdownItKbd);
       }
 
       /* ====================================================================
