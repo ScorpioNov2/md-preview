@@ -18,3 +18,5 @@
 [markdown-it-sup](https://unpkg.com/markdown-it-sup@2.0.0/dist/)
 [markdown-it-abbr](https://unpkg.com/markdown-it-abbr@2.0.0/dist/)
 [markdown-it-deflist](https://unpkg.com/markdown-it-deflist@3.0.1/dist/)
+[mermaid core](https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/) [edited export]
+[markdown-it-mermaid-plugin](https://app.unpkg.com/mermaid-it-markdown@1.0.16/files/dist) [edited export]

@@ -1007,6 +1007,22 @@
       margin-top: 6px;
       /* Khoảng cách hẹp giữa các dòng định nghĩa cùng nhóm */
     }
+
+    /* ============================================
+    MERMAID plugin
+    ============================================ */
+    code.language-mermaid .mermaid svg {
+      /* Kích hoạt cơ chế dạng khối cho SVG */
+      display: block !important;
+      /* CĂN GIỮA TUYỆT ĐỐI THEO CHIỀU NGANG */
+      margin: 0 auto !important;
+
+      /* Giữ tỷ lệ tự nhiên để không bị vỡ hoặc kéo giãn chữ */
+      /* max width svg */
+      max-width: 60% !important;
+      /* Chiều cao tự động co giãn */
+      height: auto !important;
+    }
   </style>
 </head>
 
@@ -1175,6 +1191,20 @@
   <script src="js/markdown-it-sup.min.js"></script>
   <script src="js/markdown-it-abbr.min.js"></script>
   <script src="js/markdown-it-deflist.min.js"></script>
+  <script src="js/mermaid-it-markdown.js"></script>
+  <script src="js/mermaid.min.js"></script>
+
+  <script>
+    if (window.mermaid) {
+      window.mermaid.initialize({
+        startOnLoad: false,
+        theme: 'default'
+      });
+
+    } else {
+      console.error("Chưa tải được file thư viện js/mermaid.min.js, hãy kiểm tra lại đường dẫn!");
+    }
+  </script>
 
   <script>
     (function () {
@@ -1253,6 +1283,11 @@
           html: true,
           linkify: true,
           highlight: function (str, lang) {
+            // 🎯 1. BẮT ĐÚNG BLOCK MERMAID ĐỂ XUẤT RA THẺ DIV CHỨA TEXT THÔ
+            if (lang === 'mermaid') {
+              return '<div class="mermaid">' + md.utils.escapeHtml(str) + '</div>';
+            }
+
             if (lang && window.hljs && window.hljs.getLanguage(lang)) {
               try {
                 return window.hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
@@ -2140,6 +2175,42 @@
         }
 
         preview.innerHTML = htmlResult;
+
+        // =====================================
+        // MERMAID
+        // =====================================
+        // 🎯 GỌI LỆNH NÀY ĐỂ HOÀN TẤT VẼ SƠ ĐỒ LÊN MÀN HÌNH
+        // if (window.mermaid) {
+        //   window.mermaid.run({
+        //     nodes: document.querySelectorAll('.mermaid')
+        //   });
+        // }
+
+        // =====================================
+        // MERMAID (Đã sửa lỗi Uncaught in Promise)
+        // =====================================
+        if (window.mermaid && typeof window.mermaid.run === 'function') {
+
+          // 1. Cấp ID ngẫu nhiên cho từng khối sơ đồ để không bị trùng lặp khi render real-time
+          document.querySelectorAll('.mermaid').forEach(function (el, index) {
+            if (!el.getAttribute('id')) {
+              el.setAttribute('id', 'mermaid-block-' + index + '-' + (window.crypto?.randomUUID ? crypto.randomUUID() : Date.now()));
+            }
+          });
+
+          // 2. Gọi lệnh vẽ và thêm .catch() để triệt tiêu hoàn toàn lỗi đỏ ở Console
+          window.mermaid.run({
+            nodes: document.querySelectorAll('.mermaid'),
+            suppressErrors: true // Thắt chặt cấu hình, không cho tự in lỗi nội bộ
+          })
+            .then(function () {
+              // Vẽ thành công, giữ giao diện sạch sẽ
+            })
+            .catch(function (err) {
+              // Bắt trọn toàn bộ lỗi Promise xung đột thầm lặng và nuốt trôi nó
+            });
+
+        }
       }
 
       /* ====================================================================
