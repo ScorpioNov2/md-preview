@@ -1272,7 +1272,8 @@
     if (window.mermaid) {
       window.mermaid.initialize({
         startOnLoad: false,
-        theme: 'default'
+        theme: 'default',
+        flowchart: { useMaxWidth: false }
       });
     } else {
       console.error("Chưa tải được file thư viện js/mermaid.min.js, hãy kiểm tra lại đường dẫn!");
@@ -1359,7 +1360,8 @@
           highlight: function (str, lang) {
             // 🎯 1. BẮT ĐÚNG BLOCK MERMAID ĐỂ XUẤT RA THẺ DIV CHỨA TEXT THÔ
             if (lang === 'mermaid') {
-              return `<div class="mermaid-zoom-container"><pre class="mermaid">${md.utils.escapeHtml(str)}</pre></div>`;
+              // return `<div class="mermaid-zoom-container"><pre class="mermaid">${md.utils.escapeHtml(str)}</pre></div>`;
+              return `<div class="mermaid-zoom-container"><pre class="mermaid">${str}</pre></div>`; // allow <br>
             }
 
             if (lang && window.hljs && window.hljs.getLanguage(lang)) {
@@ -2237,11 +2239,118 @@
       //   });
       // };
 
+      // function updatePreview() {
+      //   if (!md) return;
+
+      //   var rawContent = input.value.trim(), htmlResult = '';
+      //   var resolvedContent = resolveMediaInMarkdown(rawContent);
+
+      //   // ================================================================
+      //   // QUÉT TOÀN DIỆN VÀ BIẾN MỌI THỂ LOẠI THẺ SCRIPT THÀNH CHUỖI THUẦN
+      //   // ================================================================
+
+      //   // 1. Xử lý tất cả các kiểu thẻ MỞ (Có dấu > hoặc gõ dở không có dấu >)
+      //   // Regex này quét từ dấu < cho đến chữ script, bất kể có khoảng trắng ở giữa hay không
+      //   resolvedContent = resolvedContent.replace(/<\s*script/gi, '&lt;script');
+
+      //   // 2. Xử lý tất cả các kiểu thẻ ĐÓNG: &lt;/script>, </ script >
+      //   resolvedContent = resolvedContent.replace(/<\s*\/\s*script\s*>/gi, '&lt;/script&gt;');
+
+      //   var frontMatterMatch = rawContent.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+      //   if (frontMatterMatch) {
+      //     var fmText = frontMatterMatch[1], markdownBody = resolvedContent.replace(frontMatterMatch[0], '');
+      //     var data = parseFM(fmText), entries = Object.entries(data), tableHtml = '';
+      //     if (entries.length > 0) {
+      //       tableHtml = '<markdown-accessiblity-table data-catalyst=""><table><tbody>' +
+      //         entries.map(function (e) { return '<tr><th>' + escH(e[0]) + '</th><td>' + fmVal(e[1], 1) + '</td></tr>'; }).join('') + '</tbody></table></markdown-accessiblity-table>';
+      //     }
+
+      //     var rendered = md.render(markdownBody);
+      //     if (typeof renderAlerts === 'function') {
+      //       rendered = renderAlerts(rendered);
+      //     }
+
+      //     htmlResult = tableHtml + rendered;
+      //   } else {
+
+      //     var rendered = md.render(resolvedContent);
+
+      //     // escape -->
+      //     rendered = rendered.replace(/(data-clipboard-text="[^"]*)/g, function (match) {
+      //       return match.replace(/-->/g, '--&gt;');
+      //     });
+
+      //     // --- Prevent XSS onerror img NGAY TẠI ĐÂY ---
+      //     if (typeof DOMPurify !== 'undefined') {
+      //       rendered = DOMPurify.sanitize(rendered, {
+      //         // CẤM TUYỆT ĐỐI THẺ SCRIPT (Danh sách đen / Ignore list)
+      //         FORBID_TAGS: ['script'],
+      //         // CẤM LUÔN CÁC THUỘC TÍNH SỰ KIỆN GÂY XSS (onclick, onerror, onload...)
+      //         FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+
+      //         // Risk of missing extensions and required manual updates 
+      //         // ADD_TAGS: ["iframe", "markdown-accessiblity-table", "abbr", "mark", "ins", "sub", "sup", "kbd", "section", "ol", "ul", "li", "hr"],
+
+      //         // "DOMPurify treats <iframe> as dangerous as it can be exploited to embed deceptive or phishing pages over the website."
+      //         // "Hãy thả xích riêng cho một mình thẻ iframe này thôi"
+      //         ADD_TAGS: ["iframe", "button", "span", "i"],
+      //         ADD_ATTR: [
+      //           "allow", "allowfullscreen", "frameborder", "scrolling", "data-catalyst",
+      //           "class", "data-clipboard-target", "data-clipboard-text", "aria-label", "title"
+      //         ],
+      //         ALLOW_DATA_ATTR: true,
+
+      //         // CẤU HÌNH QUAN TRỌNG ĐỂ SỬA LỖI CANNOT COPY WHEN CONTAIN "-->":
+      //         SAFE_FOR_TEMPLATES: true,  // Không phá vỡ các ký tự đặc biệt dạng template/comment trong code
+      //         KEEP_CONTENT: true         // Giữ nguyên nội dung bên trong các thẻ kể cả khi thuộc tính bị lọc
+      //       });
+      //     }
+
+      //     if (typeof renderAlerts === 'function') {
+      //       rendered = renderAlerts(rendered);
+      //     }
+
+      //     // unescape --> after passing the guard
+      //     htmlResult = htmlResult.replace(/(data-clipboard-text="[^"]*)/g, function (match) {
+      //       return match.replace(/--&gt;/g, '-->');
+      //     });
+
+      //     htmlResult = rendered;
+      //   }
+
+      //   // ==========================================
+      //   // VÁ LỖ HỔNG XSS & CHỐNG CRASH TẠI ĐÂY <script>, ...
+      //   // ==========================================
+      //   // Lọc sạch các thẻ nguy hiểm (như <script>) nhưng giữ lại thẻ HTML thông thường
+      //   if (typeof DOMPurify !== 'undefined') {
+      //     htmlResult = DOMPurify.sanitize(htmlResult, {
+      //       // CẤM TUYỆT ĐỐI THẺ SCRIPT (Danh sách đen / Ignore list)
+      //       FORBID_TAGS: ['script'],
+      //       // CẤM LUÔN CÁC THUỘC TÍNH SỰ KIỆN GÂY XSS (onclick, onerror, onload...)
+      //       FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+      //       // 1. Thêm thẻ iframe VÀ thẻ tự chế vào danh sách cho phép
+      //       ADD_TAGS: ["iframe", "button", "span", "i"],
+      //       ADD_ATTR: [
+      //         "allow", "allowfullscreen", "frameborder", "scrolling", "data-catalyst",
+      //         "class", "data-clipboard-target", "data-clipboard-text", "aria-label", "title"
+      //       ],
+      //       ALLOW_DATA_ATTR: true,
+
+      //       SAFE_FOR_TEMPLATES: true,  // Không phá vỡ các ký tự đặc biệt dạng template/comment trong code
+      //       KEEP_CONTENT: true         // Giữ nguyên nội dung bên trong các thẻ kể cả khi thuộc tính bị lọc
+      //     });
+      //   } else {
+      //     console.error("CẢNH BÁO: Thư viện DOMPurify chưa được tải!");
+      //   }
+
+      //   preview.innerHTML = htmlResult;
+
       function updatePreview() {
         if (!md) return;
 
-        var rawContent = input.value.trim(), htmlResult = '';
+        var rawContent = input.value.trim();
         var resolvedContent = resolveMediaInMarkdown(rawContent);
+        var htmlResult = '';
 
         // ================================================================
         // QUÉT TOÀN DIỆN VÀ BIẾN MỌI THỂ LOẠI THẺ SCRIPT THÀNH CHUỖI THUẦN
@@ -2254,68 +2363,66 @@
         // 2. Xử lý tất cả các kiểu thẻ ĐÓNG: &lt;/script>, </ script >
         resolvedContent = resolvedContent.replace(/<\s*\/\s*script\s*>/gi, '&lt;/script&gt;');
 
+        // 1. Phân tách Front Matter và Render nội dung
         var frontMatterMatch = rawContent.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
         if (frontMatterMatch) {
-          var fmText = frontMatterMatch[1], markdownBody = resolvedContent.replace(frontMatterMatch[0], '');
+          var fmText = frontMatterMatch[1];
+          var markdownBody = resolvedContent.replace(frontMatterMatch[0], '');
           var data = parseFM(fmText), entries = Object.entries(data), tableHtml = '';
+
           if (entries.length > 0) {
             tableHtml = '<markdown-accessiblity-table data-catalyst=""><table><tbody>' +
               entries.map(function (e) { return '<tr><th>' + escH(e[0]) + '</th><td>' + fmVal(e[1], 1) + '</td></tr>'; }).join('') + '</tbody></table></markdown-accessiblity-table>';
           }
-
-          var rendered = md.render(markdownBody);
-          if (typeof renderAlerts === 'function') {
-            rendered = renderAlerts(rendered);
-          }
-
-          htmlResult = tableHtml + rendered;
+          htmlResult = tableHtml + md.render(markdownBody);
         } else {
-
-          var rendered = md.render(resolvedContent);
-
-          // --- Prevent XSS onerror img NGAY TẠI ĐÂY ---
-          if (typeof DOMPurify !== 'undefined') {
-            rendered = DOMPurify.sanitize(rendered, {
-              // CẤM TUYỆT ĐỐI THẺ SCRIPT (Danh sách đen / Ignore list)
-              FORBID_TAGS: ['script'],
-              // CẤM LUÔN CÁC THUỘC TÍNH SỰ KIỆN GÂY XSS (onclick, onerror, onload...)
-              FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
-
-              // Risk of missing extensions and required manual updates 
-              // ADD_TAGS: ["iframe", "markdown-accessiblity-table", "abbr", "mark", "ins", "sub", "sup", "kbd", "section", "ol", "ul", "li", "hr"],
-
-              // "DOMPurify treats <iframe> as dangerous as it can be exploited to embed deceptive or phishing pages over the website."
-              // "Hãy thả xích riêng cho một mình thẻ iframe này thôi"
-              ADD_TAGS: ["iframe"],
-              ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling"]
-            });
-          }
-
-          if (typeof renderAlerts === 'function') {
-            rendered = renderAlerts(rendered);
-          }
-
-          htmlResult = rendered;
+          htmlResult = md.render(resolvedContent);
         }
 
-        // ==========================================
-        // VÁ LỖ HỔNG XSS & CHỐNG CRASH TẠI ĐÂY <script>, ...
-        // ==========================================
-        // Lọc sạch các thẻ nguy hiểm (như <script>) nhưng giữ lại thẻ HTML thông thường
+        // BƯỚC KHÓA CHẾT "-->" : Mã hóa tạm thời thành một chuỗi đặc biệt để trình duyệt và DOMPurify không nuốt mất
+        htmlResult = htmlResult.replace(/(data-clipboard-text="[^"]*)/g, function (match) {
+          // Thay vì dùng dạng thực thể HTML cũ (--&gt;) vẫn có nguy cơ bị trình duyệt hiểu lầm thành đóng comment khi bóc tách, mã nguồn sử dụng một chuỗi ký tự chữ thuần độc nhất __CLOSE_COMMENT_ARROW__
+          return match.replace(/-->/g, '__CLOSE_COMMENT_ARROW__');
+        });
+
+        // 2. CHẠY BẢO VỆ CHUẨN (Tắt SAFE_FOR_TEMPLATES để diệt sạch XSS onerror)
         if (typeof DOMPurify !== 'undefined') {
           htmlResult = DOMPurify.sanitize(htmlResult, {
-            // CẤM TUYỆT ĐỐI THẺ SCRIPT (Danh sách đen / Ignore list)
             FORBID_TAGS: ['script'],
-            // CẤM LUÔN CÁC THUỘC TÍNH SỰ KIỆN GÂY XSS (onclick, onerror, onload...)
-            FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
-            // 1. Thêm thẻ iframe VÀ thẻ tự chế vào danh sách cho phép
-            ADD_TAGS: ["iframe"], // Cho phép thẻ nhúng nếu dùng video Youtube
-            // 2. Thêm các thuộc tính tùy biến đi kèm vào danh sách hợp lệ
-            ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "data-catalyst"]
+            FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'], // Chặn đứng XSS img onerror tuyệt đối
+            // SỬ DỤNG ALLOWED_TAGS: Để vừa giữ được thẻ tùy biến, vừa giữ lại các thẻ HTML cơ bản của Markdown
+            // Rist of missing tag
+            // ALLOWED_TAGS: [
+            //   // Thẻ tự chế và thẻ đặc biệt bạn cần thêm
+            //   "iframe", "button", "span", "i", "markdown-accessiblity-table",
+            //   // Thẻ HTML cơ bản bắt buộc phải có để Markdown hiển thị bình thường
+            //   "br", "p", "a", "img", "div", "h1", "h2", "h3", "h4", "h5", "h6",
+            //   "ul", "ol", "li", "strong", "em", "code", "pre", "blockquote",
+            //   "table", "thead", "tbody", "tr", "th", "td", "hr"
+            // ],
+            ADD_TAGS: ["iframe", "button", "span", "i"],
+            ADD_ATTR: [
+              "allow", "allowfullscreen", "frameborder", "scrolling", "data-catalyst",
+              "class", "data-clipboard-target", "data-clipboard-text", "aria-label", "title",
+              "target", "rel" // for external links
+            ],
+            ALLOW_DATA_ATTR: true,
+            SAFE_FOR_TEMPLATES: false, // BẮT BUỘC FALSE: Để bộ lọc bật khiên tối đa chống mXSS và Bypass qua Onerror
+            KEEP_CONTENT: true
           });
         } else {
           console.error("CẢNH BÁO: Thư viện DOMPurify chưa được tải!");
         }
+
+        // 3. Mở khóa hàm bổ trợ
+        if (typeof renderAlerts === 'function') {
+          htmlResult = renderAlerts(htmlResult);
+        }
+
+        // BƯỚC KHÔI PHỤC "-->" : Sau khi qua chốt bảo vệ an toàn, trả lại đúng chuỗi ban đầu để copy không lỗi
+        htmlResult = htmlResult.replace(/(data-clipboard-text="[^"]*)/g, function (match) {
+          return match.replace(/__CLOSE_COMMENT_ARROW__/g, '-->');
+        });
 
         preview.innerHTML = htmlResult;
 
