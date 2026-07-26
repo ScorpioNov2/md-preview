@@ -1079,16 +1079,36 @@
     /* ============================================
     Video-plugin
     ============================================ */
+    /* .embed-responsive {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: 100%;
+      margin: 0 auto;
+    }
+    
+    .embed-responsive iframe {
+      max-width: unset;
+      max-height: unset;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+    } */
+
     .embed-responsive {
       position: relative;
       display: block;
       width: 100%;
-      max-width: 640px;
       margin: 0 auto;
+      /* Thêm dòng dưới đây để khóa tỷ lệ 16:9 (hoặc thay bằng 4/3, 1/1 optional) */
+      aspect-ratio: 16 / 9;
     }
 
     .embed-responsive iframe {
+      width: 100%;
+      height: 100%;
       border-radius: 8px;
+      object-fit: cover;
     }
   </style>
 </head>
@@ -1629,7 +1649,8 @@
       }
 
       input.addEventListener('scroll', function () { scheduleGutterUpdate(); });
-      input.addEventListener('input', function () { updatePreview(); scheduleGutterUpdate(); });
+      // input.addEventListener('input', function () { updatePreview(); scheduleGutterUpdate(); });
+      input.addEventListener('input', function () { scheduleGutterUpdate(); }); // updatePreview() when completing typing
       window.addEventListener('resize', function () { _cachedWrapHeights = null; _lastWrapVal = ''; scheduleGutterUpdate(); });
 
       /* ====================================================================
@@ -1706,6 +1727,55 @@
           sidebar.style.width = pct + '%';
           sidebar.style.minWidth = pct + '%';
           sidebar.style.maxWidth = pct + '%';
+
+          // 2. Gom toàn bộ logic tính toán SVG vào đây để trình duyệt render cùng 1 lượt vẽ
+          const svgMermaids = document.querySelectorAll('.mermaid');
+
+          svgMermaids.forEach(svg => {
+            // Tìm cụm control (thường là thẻ <g> bên trong SVG)
+            const svgCtrl = svg.querySelector('.svg-pan-zoom-control'); // Hoặc '#svg-pan-zoom-controls'
+
+            if (svgCtrl) {
+              // CHẶN LỖI: Lấy kích thước hiển thị thực tế trên trình duyệt tại khung hình này
+              const currentRect = svg.getBoundingClientRect();
+
+              // Nếu SVG đang bị ẩn hoặc kích thước chưa được trình duyệt tính toán xong (bằng 0)
+              // thì bỏ qua luôn khung hình này, đợi khung hình tiếp theo khi có kích thước hữu hạn.
+              if (currentRect.width <= 0 || currentRect.height <= 0) return;
+
+              if (svg.instance) {
+                svg.instance.resize();     // Tính lại kích thước container mới
+                svg.instance.updateBBox(); // Ép tính lại tâm chuẩn (Sửa lỗi nút reset bị lệch)
+                svg.instance.fit();
+                svg.instance.center();
+              }
+
+              // 1. Lấy thông tin viewBox thực tế của thẻ SVG (Hệ tọa độ gốc của SVG)
+              // Nếu không có viewBox, ta lấy tạm width/height thuộc tính hoặc mặc định
+              const viewBox = svg.getAttribute('viewBox');
+
+              let svgInternalWidth = svg.getBoundingClientRect().width;
+              let svgInternalHeight = svg.getBoundingClientRect().height;
+
+              if (viewBox) {
+                // Tách chuỗi viewBox (ví dụ: "0 0 800 600") thành mảng số
+                const parts = viewBox.split(' ').map(Number);
+                if (parts.length === 4) {
+                  svgInternalWidth = parts[2];  // Chiều rộng gốc trong lòng SVG
+                  svgInternalHeight = parts[3]; // Chiều cao gốc trong lòng SVG
+                }
+              }
+
+              // 2. Tính toán vị trí tương đối chuẩn theo hệ tọa độ SVG
+              // Cách lề phải 32 đơn vị SVG, cách lề dưới 28 đơn vị SVG
+              const targetX = svgInternalWidth - 102; // tọa độ x = tọa độ mép phải thẻ chứa - lề muốn cách 28 - height của thẻ ctrl 56
+              let targetY = svgInternalHeight - 108; // tọa độ y = tọa độ mép dưới thẻ chứa - lề muốn cách 28 - height của thẻ ctrl 80 
+
+              // 3. Không xóa transform, không dùng style.position. 
+              // Ép thuộc tính transform hoạt động theo tọa độ đã quy đổi.
+              svgCtrl.setAttribute('transform', `translate(${targetX}, ${targetY}) scale(0.75)`);
+            }
+          });
         });
       });
 
@@ -2393,18 +2463,30 @@
             // SỬ DỤNG ALLOWED_TAGS: Để vừa giữ được thẻ tùy biến, vừa giữ lại các thẻ HTML cơ bản của Markdown
             // Rist of missing tag
             // ALLOWED_TAGS: [
-            //   // Thẻ tự chế và thẻ đặc biệt bạn cần thêm
+            //   // --- THẺ HTML HIỆN TẠI CỦA BẠN ---
             //   "iframe", "button", "span", "i", "markdown-accessiblity-table",
-            //   // Thẻ HTML cơ bản bắt buộc phải có để Markdown hiển thị bình thường
             //   "br", "p", "a", "img", "div", "h1", "h2", "h3", "h4", "h5", "h6",
             //   "ul", "ol", "li", "strong", "em", "code", "pre", "blockquote",
-            //   "table", "thead", "tbody", "tr", "th", "td", "hr"
+            //   "table", "thead", "tbody", "tr", "th", "td", "hr",
+
+            //   // 🎯 THÊM THẺ SVG VÀO ĐÂY: Để DOMPurify cho phép hiển thị đồ họa
+            //   "svg", "defs", "linearGradient", "stop", "animate", "filter",
+            //   "feGaussianBlur", "feMerge", "feMergeNode", "style", "rect",
+            //   "g", "circle", "line", "text", "tspan"
             // ],
             ADD_TAGS: ["iframe", "button", "span", "i"],
             ADD_ATTR: [
               "allow", "allowfullscreen", "frameborder", "scrolling", "data-catalyst",
               "class", "data-clipboard-target", "data-clipboard-text", "aria-label", "title",
-              "target", "rel" // for external links
+              "target", "rel", "src", "href", "alt", // for external links
+
+              // 🎯 THÊM THUỘC TÍNH SVG: Để bảo toàn kích cỡ, màu sắc và chuyển động animation
+              "xmlns", "width", "height", "viewBox", "id", "x1", "y1", "x2", "y2",
+              "offset", "stop-color", "stop-opacity", "attributeName", "values", "dur",
+              "repeatCount", "stdDeviation", "in", "result", "fill", "animation",
+              "cx", "cy", "r", "stroke", "stroke-width", "opacity", "stroke-dasharray",
+              "font-family", "font-size", "font-weight", "letter-spacing", "font-style",
+              "text-anchor"
             ],
             ALLOW_DATA_ATTR: true,
             SAFE_FOR_TEMPLATES: false, // BẮT BUỘC FALSE: Để bộ lọc bật khiên tối đa chống mXSS và Bypass qua Onerror
@@ -2457,26 +2539,55 @@
           // 3. Hàm kích hoạt vẽ ĐỒNG BỘ và gắn chặt bộ điều khiển chuột
           async function runMermaidWithZoom() {
             try {
+              // await window.mermaid.run({
+              //   querySelector: '.mermaid',
+              //   // Callback này tự động chạy chính xác NGAY SAU KHI sơ đồ được vẽ xong
+              //   postRenderCallback: function (id) {
+              //     var svgElement = document.getElementById(id);
+
+              //     // Kiểm tra xem thư viện svg-pan-zoom local của bạn đã được tải lên chưa
+              //     if (svgElement && typeof svgPanZoom !== 'undefined') {
+              //       svgPanZoom(svgElement, {
+              //         zoomEnabled: true,           // Bật cuộn chuột để Zoom
+              //         controlIconsEnabled: true,   // Hiện bảng điều khiển +, -, Reset ở góc hộp
+              //         fit: true,                   // Tự co giãn vừa vặn khung hình lúc đầu
+              //         center: true,                // Đưa sơ đồ lướt ra CHÍNH GIỮA hộp
+              //         minZoom: 0.1,                // Giới hạn thu nhỏ
+              //         maxZoom: 10,                 // Giới hạn phóng to
+              //         mouseWheelZoomEnabled: true  // Kích hoạt Zoom bằng bánh xe chuột giữa
+              //       });
+              //     }
+              //   }
+              // });
+
+              // attach the pan zoom into .mermaid as its attribute .instance to control and update position of svg when resizing sidebar
               await window.mermaid.run({
                 querySelector: '.mermaid',
-                // Callback này tự động chạy chính xác NGAY SAU KHI sơ đồ được vẽ xong
                 postRenderCallback: function (id) {
                   var svgElement = document.getElementById(id);
 
-                  // Kiểm tra xem thư viện svg-pan-zoom local của bạn đã được tải lên chưa
                   if (svgElement && typeof svgPanZoom !== 'undefined') {
-                    svgPanZoom(svgElement, {
-                      zoomEnabled: true,           // Bật cuộn chuột để Zoom
-                      controlIconsEnabled: true,   // Hiện bảng điều khiển +, -, Reset ở góc hộp
-                      fit: true,                   // Tự co giãn vừa vặn khung hình lúc đầu
-                      center: true,                // Đưa sơ đồ lướt ra CHÍNH GIỮA hộp
-                      minZoom: 0.1,                // Giới hạn thu nhỏ
-                      maxZoom: 10,                 // Giới hạn phóng to
-                      mouseWheelZoomEnabled: true  // Kích hoạt Zoom bằng bánh xe chuột giữa
+                    // Tìm thẻ div .mermaid cha để gán instance điều khiển
+                    const mermaidWrapper = svgElement.closest('.mermaid');
+
+                    const pz = svgPanZoom(svgElement, {
+                      zoomEnabled: true,
+                      controlIconsEnabled: true,
+                      fit: true,
+                      center: true,
+                      minZoom: 0.1,
+                      maxZoom: 10,
+                      mouseWheelZoomEnabled: true,
                     });
+
+                    // Gán thực thể điều khiển vào đúng phần tử .mermaid như bạn muốn
+                    if (mermaidWrapper) {
+                      mermaidWrapper.instance = pz;
+                    }
                   }
                 }
               });
+
             } catch (err) {
               // Bắt trọn toàn bộ lỗi Promise thầm lặng của hệ thống render real-time
             }
