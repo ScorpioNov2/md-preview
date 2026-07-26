@@ -941,6 +941,7 @@
       color: #1f2328 !important;
     }
 
+
     /* ==============================
     Abbreviation
     ============================== */
@@ -949,6 +950,62 @@
       text-decoration: underline dotted #007bff;
       /* Đổi con trỏ chuột thành hình dấu chấm hỏi (?) khi di vào */
       cursor: help;
+    }
+
+
+    /* ==============================
+    Deflist
+    ============================== */
+    /* 1. Khung bọc tổng thể */
+    dl {
+      margin: 30px 0;
+      padding: 0;
+    }
+
+    /* 2. Ép cặp thuật ngữ & định nghĩa dính liền nhau thành 1 hàng */
+    dt,
+    dd {
+      display: block;
+    }
+
+    /* 3. Khối thuật ngữ (Nằm trên, căn trái, chữ đậm) */
+    dt {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #1e293b;
+      margin: 24px 0 6px 0;
+      /* Khoảng cách với khối trên và khối dưới */
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Vạch màu xanh bám sát chữ, không chạy lung tung */
+    dt::before {
+      content: "";
+      display: inline-block;
+      width: 2px;
+      height: 32px;
+      background-color: #3b82f6;
+      /* Xanh Modern Blue */
+      margin-right: 8px;
+    }
+
+    /* 4. Khối nội dung định nghĩa (Thụt lề nhẹ, font dịu mắt) */
+    dd {
+      margin: 0 0 12px 12px;
+      /* Thụt lề trái 12px để tạo phân cấp, không bị thô */
+      padding: 0;
+      color: #475569;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Nếu có nhiều dòng định nghĩa cho cùng một thuật ngữ */
+    dd+dd {
+      margin-top: 6px;
+      /* Khoảng cách hẹp giữa các dòng định nghĩa cùng nhóm */
     }
   </style>
 </head>
@@ -1117,6 +1174,7 @@
   <script src="js/markdown-it-sub.min.js"></script>
   <script src="js/markdown-it-sup.min.js"></script>
   <script src="js/markdown-it-abbr.min.js"></script>
+  <script src="js/markdown-it-deflist.min.js"></script>
 
   <script>
     (function () {
@@ -1285,6 +1343,8 @@
         // Abbreviation
         md.use(window.markdownitAbbr);
 
+        // Deflist
+        md.use(window.markdownitDeflist);
       }
 
       /* ====================================================================
