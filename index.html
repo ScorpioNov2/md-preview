@@ -1028,6 +1028,31 @@
     /* ============================================
     KBD plugin - builtin in github.css
     ============================================ */
+
+
+    /* ============================================
+    Ins plugin
+    ============================================ */
+    /* --- Định dạng chữ gạch chân INS phong cách GitHub --- */
+    .markdown-body ins,
+    ins {
+      /* Tắt gạch chân thô của trình duyệt */
+      text-decoration: none;
+      color: #bf40bf;
+      /* Dùng nét đứt (dashed) để càng khác biệt với link */
+      border-bottom: 1.5px dashed #bf40bf;
+      padding-bottom: 1px;
+
+      background-color: rgba(191, 64, 191, 0.05);
+      border-radius: 2px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    /* Hiệu ứng khi di chuột qua: tăng độ đậm của màu nền */
+    .markdown-body ins:hover,
+    ins:hover {
+      background-color: rgba(191, 64, 191, 0.12);
+    }
   </style>
 </head>
 
@@ -1199,6 +1224,7 @@
   <script src="js/mermaid-it-markdown.js"></script>
   <script src="js/mermaid.min.js"></script>
   <script src="js/markdown-it-kbd.js"></script>
+  <script src="js/markdown-it-ins.min.js"></script>
 
   <script>
     if (window.mermaid) {
@@ -1390,6 +1416,9 @@
 
         // Kbd
         md.use(window.markdownItKbd);
+
+        // Ins
+        md.use(window.markdownitIns);
       }
 
       /* ====================================================================
