@@ -1227,6 +1227,7 @@
   <script src="js/markdown-it-ins.min.js"></script>
   <script src="js/markdown-it-external-links.js"></script>
   <script src="js/markdown-it-implicit-figures.js"></script>
+  <script src="js/purify.min.js"></script>
 
   <script>
     if (window.mermaid) {
@@ -2201,6 +2202,18 @@
 
         var rawContent = input.value.trim(), htmlResult = '';
         var resolvedContent = resolveMediaInMarkdown(rawContent);
+
+        // ================================================================
+        // QUÉT TOÀN DIỆN VÀ BIẾN MỌI THỂ LOẠI THẺ SCRIPT THÀNH CHUỖI THUẦN
+        // ================================================================
+
+        // 1. Xử lý tất cả các kiểu thẻ MỞ (Có dấu > hoặc gõ dở không có dấu >)
+        // Regex này quét từ dấu < cho đến chữ script, bất kể có khoảng trắng ở giữa hay không
+        resolvedContent = resolvedContent.replace(/<\s*script/gi, '&lt;script');
+
+        // 2. Xử lý tất cả các kiểu thẻ ĐÓNG: &lt;/script>, </ script >
+        resolvedContent = resolvedContent.replace(/<\s*\/\s*script\s*>/gi, '&lt;/script&gt;');
+
         var frontMatterMatch = rawContent.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
         if (frontMatterMatch) {
           var fmText = frontMatterMatch[1], markdownBody = resolvedContent.replace(frontMatterMatch[0], '');
@@ -2220,11 +2233,48 @@
 
           var rendered = md.render(resolvedContent);
 
+          // --- Prevent XSS onerror img NGAY TẠI ĐÂY ---
+          if (typeof DOMPurify !== 'undefined') {
+            rendered = DOMPurify.sanitize(rendered, {
+              // CẤM TUYỆT ĐỐI THẺ SCRIPT (Danh sách đen / Ignore list)
+              FORBID_TAGS: ['script'],
+              // CẤM LUÔN CÁC THUỘC TÍNH SỰ KIỆN GÂY XSS (onclick, onerror, onload...)
+              FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+
+              // Risk of missing extensions and required manual updates 
+              // ADD_TAGS: ["iframe", "markdown-accessiblity-table", "abbr", "mark", "ins", "sub", "sup", "kbd", "section", "ol", "ul", "li", "hr"],
+
+              // "DOMPurify treats <iframe> as dangerous as it can be exploited to embed deceptive or phishing pages over the website."
+              // "Hãy thả xích riêng cho một mình thẻ iframe này thôi"
+              ADD_TAGS: ["iframe"],
+              ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling"]
+            });
+          }
+
           if (typeof renderAlerts === 'function') {
             rendered = renderAlerts(rendered);
           }
 
           htmlResult = rendered;
+        }
+
+        // ==========================================
+        // VÁ LỖ HỔNG XSS & CHỐNG CRASH TẠI ĐÂY <script>, ...
+        // ==========================================
+        // Lọc sạch các thẻ nguy hiểm (như <script>) nhưng giữ lại thẻ HTML thông thường
+        if (typeof DOMPurify !== 'undefined') {
+          htmlResult = DOMPurify.sanitize(htmlResult, {
+            // CẤM TUYỆT ĐỐI THẺ SCRIPT (Danh sách đen / Ignore list)
+            FORBID_TAGS: ['script'],
+            // CẤM LUÔN CÁC THUỘC TÍNH SỰ KIỆN GÂY XSS (onclick, onerror, onload...)
+            FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+            // 1. Thêm thẻ iframe VÀ thẻ tự chế vào danh sách cho phép
+            ADD_TAGS: ["iframe"], // Cho phép thẻ nhúng nếu dùng video Youtube
+            // 2. Thêm các thuộc tính tùy biến đi kèm vào danh sách hợp lệ
+            ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "data-catalyst"]
+          });
+        } else {
+          console.error("CẢNH BÁO: Thư viện DOMPurify chưa được tải!");
         }
 
         preview.innerHTML = htmlResult;

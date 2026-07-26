@@ -25,3 +25,4 @@
 [markdown-it-ins](https://unpkg.com/markdown-it-ins@4.0.0/dist/)
 [markdown-it-external-links](https://app.unpkg.com/markdown-it-external-links@0.0.6)
 [markdown-it-implicit-figures](https://app.unpkg.com/markdown-it-implicit-figures@0.12.0) [edited export]
+[purify prevent xss](https://unpkg.com/dompurify@3.4.12/dist/)
