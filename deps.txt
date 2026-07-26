@@ -16,3 +16,4 @@
 [markdown-it-footnote](https://app.unpkg.com/markdown-it-footnote@4.0.0/files/dist)
 [markdown-it-sub](https://unpkg.com/markdown-it-sub@2.0.0/dist/)
 [markdown-it-sup](https://unpkg.com/markdown-it-sup@2.0.0/dist/)
+[markdown-it-abbr](https://unpkg.com/markdown-it-abbr@2.0.0/dist/)
