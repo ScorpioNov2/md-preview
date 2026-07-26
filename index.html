@@ -1226,6 +1226,7 @@
   <script src="js/markdown-it-kbd.js"></script>
   <script src="js/markdown-it-ins.min.js"></script>
   <script src="js/markdown-it-external-links.js"></script>
+  <script src="js/markdown-it-implicit-figures.js"></script>
 
   <script>
     if (window.mermaid) {
@@ -1426,6 +1427,11 @@
           externalTarget: '_blank',           // Tự động mở tab mới
           externalRel: 'noopener noreferrer',   // Bảo mật SEO tốt nhất
           externalClassName: 'ext-link'       // Thêm class để bạn viết CSS
+        });
+
+        md.use(window.markdownItImplicitFigures, {
+          figcaption: true, // Bật tính năng tự sinh chú thích ảnh từ Alt Text
+          keepAlt: true     // Giữ lại thuộc tính alt bên trong thẻ img phục vụ SEO
         });
       }
 
