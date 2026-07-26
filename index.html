@@ -940,6 +940,16 @@
       border-left-color: #8250df !important;
       color: #1f2328 !important;
     }
+
+    /* ==============================
+    Abbreviation
+    ============================== */
+    abbr[title] {
+      /* Gạch chân chấm nhỏ màu xanh */
+      text-decoration: underline dotted #007bff;
+      /* Đổi con trỏ chuột thành hình dấu chấm hỏi (?) khi di vào */
+      cursor: help;
+    }
   </style>
 </head>
 
@@ -1106,6 +1116,7 @@
   <script src="js/markdown-it-footnote.min.js"></script>
   <script src="js/markdown-it-sub.min.js"></script>
   <script src="js/markdown-it-sup.min.js"></script>
+  <script src="js/markdown-it-abbr.min.js"></script>
 
   <script>
     (function () {
@@ -1270,6 +1281,9 @@
         // Sup and Sub
         md.use(window.markdownitSub);
         md.use(window.markdownitSup);
+
+        // Abbreviation
+        md.use(window.markdownitAbbr);
 
       }
 
