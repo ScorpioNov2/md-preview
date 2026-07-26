@@ -14,7 +14,7 @@
     :root {
       --border-color: #d0d7de;
       --bg-gray: #f6f8fa;
-      --sidebar-min: 16%;
+      --sidebar-min: 200px;
       --sidebar-max: 40%;
       --line-height: 20px;
       --gutter-width: 52px;
@@ -1830,10 +1830,10 @@
           resizeRafId = null;
           var totalW = window.innerWidth;
           var pct = (e.clientX / totalW) * 100;
-          pct = Math.max(16, Math.min(40, pct));
-          sidebar.style.width = pct + '%';
-          sidebar.style.minWidth = pct + '%';
-          sidebar.style.maxWidth = pct + '%';
+          var finalWidth = `clamp(200px, ${pct}%, 40%)`;
+          sidebar.style.width = finalWidth;
+          sidebar.style.minWidth = finalWidth;
+          sidebar.style.maxWidth = finalWidth;
 
           // 2. Gom toàn bộ logic tính toán SVG vào đây để trình duyệt render cùng 1 lượt vẽ
           const svgMermaids = document.querySelectorAll('.mermaid');
