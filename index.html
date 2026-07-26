@@ -1053,6 +1053,21 @@
     ins:hover {
       background-color: rgba(191, 64, 191, 0.12);
     }
+
+    /* ============================================
+    Video-plugin
+    ============================================ */
+    .embed-responsive {
+      position: relative;
+      display: block;
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .embed-responsive iframe {
+      border-radius: 8px;
+    }
   </style>
 </head>
 
@@ -1228,6 +1243,7 @@
   <script src="js/markdown-it-external-links.js"></script>
   <script src="js/markdown-it-implicit-figures.js"></script>
   <script src="js/purify.min.js"></script>
+  <script src="js/markdown-it-video.js"></script>
 
   <script>
     if (window.mermaid) {
@@ -1434,6 +1450,9 @@
           figcaption: true, // Bật tính năng tự sinh chú thích ảnh từ Alt Text
           keepAlt: true     // Giữ lại thuộc tính alt bên trong thẻ img phục vụ SEO
         });
+
+        // Video
+        md.use(window.markdownitVideo);
       }
 
       /* ====================================================================
