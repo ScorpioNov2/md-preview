@@ -1192,6 +1192,23 @@
       border-radius: 8px;
       object-fit: cover;
     }
+
+    /* ============================================
+    Markdown svg render
+    ============================================ */
+    .markdown-svg-container {
+      /* Ensure container spans full markdown width */
+      width: 100%;
+      /* Fallback centering alignment for inline content */
+      text-align: center;
+    }
+
+    .markdown-svg-container svg {
+      /* Required: forces the SVG to honor block margins */
+      display: block;
+      /* Centers the SVG horizontally */
+      margin: 0 auto;
+    }
   </style>
 </head>
 
@@ -1369,6 +1386,7 @@
   <script src="js/purify.min.js"></script>
   <script src="js/markdown-it-video.js"></script>
   <script src="js/svg-pan-zoom.min.js"></script>
+  <script src="js/markdown-it-svg-render.js"></script>
 
   <script>
     if (window.mermaid) {
@@ -1377,7 +1395,7 @@
         securityLevel: 'loose',
         htmlLabels: true,
         theme: 'default',
-        // theme: 'neutral',
+        // theme: 'neutral',    // not beautiful
         look: 'handDrawn',
         flowchart: { useMaxWidth: false }
       });
@@ -1463,6 +1481,7 @@
           html: true,
           typographer: true,  // Kích hoạt bộ tự động thay thế văn bản chuẩn (c), (p), (r)
           linkify: true,
+          xhtmlOut: true,     // Use '/' to close single tags (<br />) for strict XML/SVG compliance
           highlight: function (str, lang) {
             // 🎯 1. BẮT ĐÚNG BLOCK MERMAID ĐỂ XUẤT RA THẺ DIV CHỨA TEXT THÔ
             if (lang === 'mermaid') {
@@ -1582,6 +1601,8 @@
 
         // Video
         md.use(window.markdownitVideo);
+
+        md.use(window.markdownItSvgRender);
       }
 
       /* ====================================================================
