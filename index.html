@@ -564,6 +564,7 @@
     markdown-accessiblity-table {
       display: block;
       width: 100%;
+      overflow-x: auto;
       margin-bottom: 24px;
     }
 
@@ -592,6 +593,16 @@
 
     markdown-accessiblity-table div[dir="auto"] {
       padding: 2px 0;
+    }
+
+    table.frontmatter-table,
+    table.frontmatter-table table {
+      display: table;
+      width: 100%;
+    }
+
+    table.frontmatter-table tbody table tbody td {
+      text-align: center;
     }
 
     /* ===== CONTEXT MENU ===== */
@@ -1387,6 +1398,7 @@
   <script src="js/markdown-it-video.js"></script>
   <script src="js/svg-pan-zoom.min.js"></script>
   <script src="js/markdown-it-svg-render.js"></script>
+  <script src="js/markdown-it-frontmatter.umd.js"></script>
 
   <script>
     if (window.mermaid) {
@@ -1602,7 +1614,11 @@
         // Video
         md.use(window.markdownitVideo);
 
+        // svg render ```svg block
         md.use(window.markdownItSvgRender);
+
+        // front matter --- on ther head of file or ```table block
+        md.use(window.frontmatter_plugin);
       }
 
       /* ====================================================================
@@ -2319,54 +2335,6 @@
         return temp.innerHTML;
       }
 
-      /* --- Front Matter Parsing --- */
-      function parseFM(text) {
-        var result = {}, lines = text.split('\n'), i = 0;
-        while (i < lines.length) {
-          var line = lines[i], m = line.match(/^([a-zA-Z_][a-zA-Z0-9_\-]*)\s*:\s*(.*)/);
-          if (!m) { i++; continue; }
-          var key = m[1], valInline = m[2].trim(); i++;
-          if (!valInline) {
-            var block = [];
-            while (i < lines.length && (lines[i] === '' || /^\s/.test(lines[i]))) { block.push(lines[i]); i++; }
-            var raw2 = block.join('\n').trim(), cleaned = raw2.replace(/,(\s*[}\]])/g, '$1');
-            try { result[key] = JSON.parse(cleaned); } catch (e) { result[key] = raw2; }
-          } else {
-            if ((valInline.startsWith('"') && valInline.endsWith('"')) || (valInline.startsWith("'") && valInline.endsWith("'"))) result[key] = valInline.slice(1, -1);
-            else { try { result[key] = JSON.parse(valInline); } catch (e) { result[key] = valInline; } }
-          }
-        }
-        return result;
-      }
-
-      function fmVal(v, depth) {
-        if (depth === undefined) depth = 0;
-        if (v === null || v === undefined) return '<em class="fm-null">null</em>';
-        if (typeof v === 'boolean' || typeof v === 'number') return '<code>' + v + '</code>';
-        if (typeof v === 'string') {
-          if (/^https?:\/\//.test(v)) return '<a href="' + escH(v) + '" target="_blank" rel="nofollow noopener">' + escH(v) + '</a>';
-          return escH(v);
-        }
-        if (Array.isArray(v)) {
-          if (!v.length) return '<em class="fm-empty-arr">[]</em>';
-          if (v.every(function (x) { return x && typeof x === 'object' && !Array.isArray(x); })) {
-            var keys = [];
-            v.forEach(function (x) { Object.keys(x).forEach(function (k) { if (keys.indexOf(k) === -1) keys.push(k); }); });
-            return '<table><thead><tr>' + keys.map(function (k) { return '<th>' + escH(k) + '</th>'; }).join('') + '</tr></thead><tbody>' +
-              v.map(function (row) { return '<tr>' + keys.map(function (k) { return '<td><div dir="auto">' + fmVal(row[k], depth + 1) + '</div></td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>';
-          }
-          return v.map(function (x) { return typeof x === 'object' ? fmVal(x, depth + 1) : '<code>' + escH(String(x)) + '</code>'; }).join(' ');
-        }
-        if (typeof v === 'object') {
-          var entries = Object.entries(v);
-          if (!entries.length) return '<em class="fm-empty-obj">{}</em>';
-          if (depth === 0) return '<table><tbody>' + entries.map(function (e) { return '<tr><th>' + escH(e[0]) + '</th><td>' + fmVal(e[1], 1) + '</td></tr>'; }).join('') + '</tbody></table>';
-          return '<table><thead><tr>' + entries.map(function (e) { return '<th>' + escH(e[0]) + '</th>'; }).join('') + '</tr></thead><tbody><tr>' +
-            entries.map(function (e) { return '<td><div dir="auto">' + fmVal(e[1], depth + 1) + '</div></td>'; }).join('') + '</tr></tbody></table>';
-        }
-        return escH(String(v));
-      }
-
       /* --- Main Preview Pipeline --- */
       function resolveRelativePath(fromDir, rel) {
         var clean = rel.replace(/^[.\/]+/, '');
@@ -2399,132 +2367,6 @@
         return content;
       }
 
-      // window.executeGithubCopy = function (buttonElement, encodedSourceText) {
-      //   var rawText = decodeURIComponent(encodedSourceText);
-      //   var copyIcon = buttonElement.querySelector('.js-clipboard-copy-icon');
-      //   var checkIcon = buttonElement.querySelector('.js-clipboard-check-icon');
-
-      //   navigator.clipboard.writeText(rawText).then(function () {
-      //     if (copyIcon) copyIcon.classList.add('d-none');
-      //     if (checkIcon) checkIcon.classList.remove('d-none');
-      //     buttonElement.classList.add('copied');
-
-      //     setTimeout(function () {
-      //       if (copyIcon) copyIcon.classList.remove('d-none');
-      //       if (checkIcon) checkIcon.classList.add('d-none');
-      //       buttonElement.classList.remove('copied');
-      //     }, 2000);
-      //   }).catch(function (err) {
-      //     console.error("Failed to copy source code: ", err);
-      //   });
-      // };
-
-      // function updatePreview() {
-      //   if (!md) return;
-
-      //   var rawContent = input.value.trim(), htmlResult = '';
-      //   var resolvedContent = resolveMediaInMarkdown(rawContent);
-
-      //   // ================================================================
-      //   // QUÉT TOÀN DIỆN VÀ BIẾN MỌI THỂ LOẠI THẺ SCRIPT THÀNH CHUỖI THUẦN
-      //   // ================================================================
-
-      //   // 1. Xử lý tất cả các kiểu thẻ MỞ (Có dấu > hoặc gõ dở không có dấu >)
-      //   // Regex này quét từ dấu < cho đến chữ script, bất kể có khoảng trắng ở giữa hay không
-      //   resolvedContent = resolvedContent.replace(/<\s*script/gi, '&lt;script');
-
-      //   // 2. Xử lý tất cả các kiểu thẻ ĐÓNG: &lt;/script>, </ script >
-      //   resolvedContent = resolvedContent.replace(/<\s*\/\s*script\s*>/gi, '&lt;/script&gt;');
-
-      //   var frontMatterMatch = rawContent.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
-      //   if (frontMatterMatch) {
-      //     var fmText = frontMatterMatch[1], markdownBody = resolvedContent.replace(frontMatterMatch[0], '');
-      //     var data = parseFM(fmText), entries = Object.entries(data), tableHtml = '';
-      //     if (entries.length > 0) {
-      //       tableHtml = '<markdown-accessiblity-table data-catalyst=""><table><tbody>' +
-      //         entries.map(function (e) { return '<tr><th>' + escH(e[0]) + '</th><td>' + fmVal(e[1], 1) + '</td></tr>'; }).join('') + '</tbody></table></markdown-accessiblity-table>';
-      //     }
-
-      //     var rendered = md.render(markdownBody);
-      //     if (typeof renderAlerts === 'function') {
-      //       rendered = renderAlerts(rendered);
-      //     }
-
-      //     htmlResult = tableHtml + rendered;
-      //   } else {
-
-      //     var rendered = md.render(resolvedContent);
-
-      //     // escape -->
-      //     rendered = rendered.replace(/(data-clipboard-text="[^"]*)/g, function (match) {
-      //       return match.replace(/-->/g, '--&gt;');
-      //     });
-
-      //     // --- Prevent XSS onerror img NGAY TẠI ĐÂY ---
-      //     if (typeof DOMPurify !== 'undefined') {
-      //       rendered = DOMPurify.sanitize(rendered, {
-      //         // CẤM TUYỆT ĐỐI THẺ SCRIPT (Danh sách đen / Ignore list)
-      //         FORBID_TAGS: ['script'],
-      //         // CẤM LUÔN CÁC THUỘC TÍNH SỰ KIỆN GÂY XSS (onclick, onerror, onload...)
-      //         FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
-
-      //         // Risk of missing extensions and required manual updates 
-      //         // ADD_TAGS: ["iframe", "markdown-accessiblity-table", "abbr", "mark", "ins", "sub", "sup", "kbd", "section", "ol", "ul", "li", "hr"],
-
-      //         // "DOMPurify treats <iframe> as dangerous as it can be exploited to embed deceptive or phishing pages over the website."
-      //         // "Hãy thả xích riêng cho một mình thẻ iframe này thôi"
-      //         ADD_TAGS: ["iframe", "button", "span", "i"],
-      //         ADD_ATTR: [
-      //           "allow", "allowfullscreen", "frameborder", "scrolling", "data-catalyst",
-      //           "class", "data-clipboard-target", "data-clipboard-text", "aria-label", "title"
-      //         ],
-      //         ALLOW_DATA_ATTR: true,
-
-      //         // CẤU HÌNH QUAN TRỌNG ĐỂ SỬA LỖI CANNOT COPY WHEN CONTAIN "-->":
-      //         SAFE_FOR_TEMPLATES: true,  // Không phá vỡ các ký tự đặc biệt dạng template/comment trong code
-      //         KEEP_CONTENT: true         // Giữ nguyên nội dung bên trong các thẻ kể cả khi thuộc tính bị lọc
-      //       });
-      //     }
-
-      //     if (typeof renderAlerts === 'function') {
-      //       rendered = renderAlerts(rendered);
-      //     }
-
-      //     // unescape --> after passing the guard
-      //     htmlResult = htmlResult.replace(/(data-clipboard-text="[^"]*)/g, function (match) {
-      //       return match.replace(/--&gt;/g, '-->');
-      //     });
-
-      //     htmlResult = rendered;
-      //   }
-
-      //   // ==========================================
-      //   // VÁ LỖ HỔNG XSS & CHỐNG CRASH TẠI ĐÂY <script>, ...
-      //   // ==========================================
-      //   // Lọc sạch các thẻ nguy hiểm (như <script>) nhưng giữ lại thẻ HTML thông thường
-      //   if (typeof DOMPurify !== 'undefined') {
-      //     htmlResult = DOMPurify.sanitize(htmlResult, {
-      //       // CẤM TUYỆT ĐỐI THẺ SCRIPT (Danh sách đen / Ignore list)
-      //       FORBID_TAGS: ['script'],
-      //       // CẤM LUÔN CÁC THUỘC TÍNH SỰ KIỆN GÂY XSS (onclick, onerror, onload...)
-      //       FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
-      //       // 1. Thêm thẻ iframe VÀ thẻ tự chế vào danh sách cho phép
-      //       ADD_TAGS: ["iframe", "button", "span", "i"],
-      //       ADD_ATTR: [
-      //         "allow", "allowfullscreen", "frameborder", "scrolling", "data-catalyst",
-      //         "class", "data-clipboard-target", "data-clipboard-text", "aria-label", "title"
-      //       ],
-      //       ALLOW_DATA_ATTR: true,
-
-      //       SAFE_FOR_TEMPLATES: true,  // Không phá vỡ các ký tự đặc biệt dạng template/comment trong code
-      //       KEEP_CONTENT: true         // Giữ nguyên nội dung bên trong các thẻ kể cả khi thuộc tính bị lọc
-      //     });
-      //   } else {
-      //     console.error("CẢNH BÁO: Thư viện DOMPurify chưa được tải!");
-      //   }
-
-      //   preview.innerHTML = htmlResult;
-
       function updatePreview() {
         if (!md) return;
 
@@ -2543,21 +2385,9 @@
         // 2. Xử lý tất cả các kiểu thẻ ĐÓNG: &lt;/script>, </ script >
         resolvedContent = resolvedContent.replace(/<\s*\/\s*script\s*>/gi, '&lt;/script&gt;');
 
-        // 1. Phân tách Front Matter và Render nội dung
-        var frontMatterMatch = rawContent.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
-        if (frontMatterMatch) {
-          var fmText = frontMatterMatch[1];
-          var markdownBody = resolvedContent.replace(frontMatterMatch[0], '');
-          var data = parseFM(fmText), entries = Object.entries(data), tableHtml = '';
-
-          if (entries.length > 0) {
-            tableHtml = '<markdown-accessiblity-table data-catalyst=""><table><tbody>' +
-              entries.map(function (e) { return '<tr><th>' + escH(e[0]) + '</th><td>' + fmVal(e[1], 1) + '</td></tr>'; }).join('') + '</tbody></table></markdown-accessiblity-table>';
-          }
-          htmlResult = tableHtml + md.render(markdownBody);
-        } else {
-          htmlResult = md.render(resolvedContent);
-        }
+        var mdEnv = {};
+        htmlResult = md.render(resolvedContent, mdEnv);
+        if (mdEnv.frontmatterHtml) htmlResult = mdEnv.frontmatterHtml + htmlResult;
 
         // BƯỚC KHÓA CHẾT "-->" : Mã hóa tạm thời thành một chuỗi đặc biệt để trình duyệt và DOMPurify không nuốt mất
         htmlResult = htmlResult.replace(/(data-clipboard-text="[^"]*)/g, function (match) {
@@ -2584,7 +2414,7 @@
             //   "feGaussianBlur", "feMerge", "feMergeNode", "style", "rect",
             //   "g", "circle", "line", "text", "tspan"
             // ],
-            ADD_TAGS: ["iframe", "button", "span", "i"],
+            ADD_TAGS: ["iframe", "button", "span", "i", "markdown-accessiblity-table"],
             ADD_ATTR: [
               "allow", "allowfullscreen", "frameborder", "scrolling", "data-catalyst",
               "class", "data-clipboard-target", "data-clipboard-text", "aria-label", "title",
@@ -2632,8 +2462,6 @@
 
           // 2. Thuật toán nâng cao: Tự tạo chiếc hộp bọc nền gạch Caro quanh sơ đồ Mermaid
           document.querySelectorAll('.mermaid').forEach(function (el, index) {
-            // Ép tạo ID ngẫu nhiên chống trùng lặp dữ liệu real-time
-            console.log(el)
             if (!el.getAttribute('id')) {
               el.setAttribute('id', 'mermaid-block-' + index + '-' + (window.crypto?.randomUUID ? crypto.randomUUID() : Date.now()));
             }
