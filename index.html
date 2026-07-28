@@ -1912,8 +1912,8 @@
         if (items && items.length) {
           for (var i = 0; i < items.length; i++) {
             if (items[i].kind === 'file') {
-              var ext = (items[i].name || '').split('.').pop().toLowerCase();
-              if (ext !== 'md' && ext !== 'txt') { valid = false; break; }
+              var fileType = (items[i].type || '').toLowerCase();
+              if (fileType !== 'text/plain' && fileType !== 'text/markdown') { valid = false; break; }
             }
           }
         }
