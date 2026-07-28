@@ -1628,6 +1628,7 @@
       ==================================================================== */
       var gutterPool = [];
       var gutterScheduled = false;
+      var windowResizeRafId = null;
 
       var _measuredLH = null;
       function getActualLineHeight() {
@@ -1774,7 +1775,20 @@
       input.addEventListener('scroll', function () { scheduleGutterUpdate(); });
       // input.addEventListener('input', function () { updatePreview(); scheduleGutterUpdate(); });
       input.addEventListener('input', function () { scheduleGutterUpdate(); }); // updatePreview() when completing typing
-      window.addEventListener('resize', function () { _cachedWrapHeights = null; _lastWrapVal = ''; scheduleGutterUpdate(); });
+      window.addEventListener('resize', function () {
+        _cachedWrapHeights = null;
+        _lastWrapVal = '';
+
+        if (windowResizeRafId) {
+          cancelAnimationFrame(windowResizeRafId);
+        }
+
+        windowResizeRafId = requestAnimationFrame(() => {
+          const svgMermaids = document.querySelectorAll('.mermaid');
+          scheduleGutterUpdate();
+          svgMermaids.forEach(svg => updateSvgControlPos(svg));
+        });
+      });
 
       /* ====================================================================
          2. WORD WRAP TOGGLE
@@ -1828,7 +1842,7 @@
          4. RESIZABLE SIDEBAR (20% - 40%)
       ==================================================================== */
       var isResizing = false;
-      var resizeRafId = null;
+      var sideBarResizeRafId = null;
 
       resizeHandle.addEventListener('mousedown', function (e) {
         isResizing = true;
@@ -1839,11 +1853,69 @@
         e.preventDefault();
       });
 
+      function updateSvgControlPos(svg) {
+        // Tìm cụm control (thường là thẻ <g> bên trong SVG)
+        const svgCtrl = svg.querySelector('.svg-pan-zoom-control'); // Hoặc '#svg-pan-zoom-controls'
+
+        if (svgCtrl) {
+          // CHẶN LỖI: Lấy kích thước hiển thị thực tế trên trình duyệt tại khung hình này
+          const currentRect = svg.getBoundingClientRect();
+
+          // Nếu SVG đang bị ẩn hoặc kích thước chưa được trình duyệt tính toán xong (bằng 0)
+          // thì bỏ qua luôn khung hình này, đợi khung hình tiếp theo khi có kích thước hữu hạn.
+          if (currentRect.width <= 0 || currentRect.height <= 0) return;
+
+          if (svg.instance) {
+            // Update the background only
+            svg.instance.resize();     // Tính lại kích thước container mới
+            svg.instance.updateBBox(); // Ép tính lại tâm chuẩn (Sửa lỗi nút reset bị lệch)
+
+            // No changing current figure in svg
+            // svg.instance.fit();  // covering in center
+            // svg.instance.center(); // stay at center
+          }
+
+          // 1. Lấy thông tin viewBox thực tế của thẻ SVG (Hệ tọa độ gốc của SVG)
+          // Nếu không có viewBox, ta lấy tạm width/height thuộc tính hoặc mặc định
+          const viewBox = svg.getAttribute('viewBox');
+
+          let svgInternalWidth = svg.getBoundingClientRect().width;
+          let svgInternalHeight = svg.getBoundingClientRect().height;
+
+          if (viewBox) {
+            // Tách chuỗi viewBox (ví dụ: "0 0 800 600") thành mảng số
+            const parts = viewBox.split(' ').map(Number);
+            if (parts.length === 4) {
+              svgInternalWidth = parts[2];  // Chiều rộng gốc trong lòng SVG
+              svgInternalHeight = parts[3]; // Chiều cao gốc trong lòng SVG
+            }
+          }
+
+          // 2. Tính toán vị trí tương đối chuẩn theo hệ tọa độ SVG
+          // Cách lề phải 32 đơn vị SVG, cách lề dưới 28 đơn vị SVG
+          const targetX = svgInternalWidth - 102; // tọa độ x = tọa độ mép phải thẻ chứa - lề muốn cách 28 - height của thẻ ctrl 56
+          let targetY = svgInternalHeight - 108; // tọa độ y = tọa độ mép dưới thẻ chứa - lề muốn cách 28 - height của thẻ ctrl 80 
+
+          // 3. Không xóa transform, không dùng style.position. 
+          // Ép thuộc tính transform hoạt động theo tọa độ đã quy đổi.
+          svgCtrl.setAttribute('transform', `translate(${targetX}, ${targetY}) scale(0.75)`);
+        }
+      };
+
+      // const mermaidBlockResizeObserver = new ResizeObserver(entries => {
+      //   for (let entry of entries) {
+      //     console.log("hello")
+      //     updateSvgControlPos(entry.target);
+      //   }
+      // });
+      // svgMermaids.forEach(svg => resizeObserver.observe(svg));
+
       document.addEventListener('mousemove', function (e) {
         if (!isResizing) return;
-        if (resizeRafId) return;
-        resizeRafId = requestAnimationFrame(function () {
-          resizeRafId = null;
+        if (sideBarResizeRafId) return;
+
+        sideBarResizeRafId = requestAnimationFrame(function () {
+          sideBarResizeRafId = null;
           var totalW = window.innerWidth;
           var pct = (e.clientX / totalW) * 100;
           var finalWidth = `clamp(200px, ${pct}%, 40%)`;
@@ -1854,61 +1926,14 @@
           // 2. Gom toàn bộ logic tính toán SVG vào đây để trình duyệt render cùng 1 lượt vẽ
           const svgMermaids = document.querySelectorAll('.mermaid');
 
-          svgMermaids.forEach(svg => {
-            // Tìm cụm control (thường là thẻ <g> bên trong SVG)
-            const svgCtrl = svg.querySelector('.svg-pan-zoom-control'); // Hoặc '#svg-pan-zoom-controls'
-
-            if (svgCtrl) {
-              // CHẶN LỖI: Lấy kích thước hiển thị thực tế trên trình duyệt tại khung hình này
-              const currentRect = svg.getBoundingClientRect();
-
-              // Nếu SVG đang bị ẩn hoặc kích thước chưa được trình duyệt tính toán xong (bằng 0)
-              // thì bỏ qua luôn khung hình này, đợi khung hình tiếp theo khi có kích thước hữu hạn.
-              if (currentRect.width <= 0 || currentRect.height <= 0) return;
-
-              if (svg.instance) {
-                // Update the background only
-                svg.instance.resize();     // Tính lại kích thước container mới
-                svg.instance.updateBBox(); // Ép tính lại tâm chuẩn (Sửa lỗi nút reset bị lệch)
-
-                // No changing current figure in svg
-                // svg.instance.fit();  // covering in center
-                // svg.instance.center(); // stay at center
-              }
-
-              // 1. Lấy thông tin viewBox thực tế của thẻ SVG (Hệ tọa độ gốc của SVG)
-              // Nếu không có viewBox, ta lấy tạm width/height thuộc tính hoặc mặc định
-              const viewBox = svg.getAttribute('viewBox');
-
-              let svgInternalWidth = svg.getBoundingClientRect().width;
-              let svgInternalHeight = svg.getBoundingClientRect().height;
-
-              if (viewBox) {
-                // Tách chuỗi viewBox (ví dụ: "0 0 800 600") thành mảng số
-                const parts = viewBox.split(' ').map(Number);
-                if (parts.length === 4) {
-                  svgInternalWidth = parts[2];  // Chiều rộng gốc trong lòng SVG
-                  svgInternalHeight = parts[3]; // Chiều cao gốc trong lòng SVG
-                }
-              }
-
-              // 2. Tính toán vị trí tương đối chuẩn theo hệ tọa độ SVG
-              // Cách lề phải 32 đơn vị SVG, cách lề dưới 28 đơn vị SVG
-              const targetX = svgInternalWidth - 102; // tọa độ x = tọa độ mép phải thẻ chứa - lề muốn cách 28 - height của thẻ ctrl 56
-              let targetY = svgInternalHeight - 108; // tọa độ y = tọa độ mép dưới thẻ chứa - lề muốn cách 28 - height của thẻ ctrl 80 
-
-              // 3. Không xóa transform, không dùng style.position. 
-              // Ép thuộc tính transform hoạt động theo tọa độ đã quy đổi.
-              svgCtrl.setAttribute('transform', `translate(${targetX}, ${targetY}) scale(0.75)`);
-            }
-          });
+          svgMermaids.forEach(svg => updateSvgControlPos(svg));
         });
       });
 
       document.addEventListener('mouseup', function () {
         if (!isResizing) return;
         isResizing = false;
-        if (resizeRafId) { cancelAnimationFrame(resizeRafId); resizeRafId = null; }
+        if (sideBarResizeRafId) { cancelAnimationFrame(sideBarResizeRafId); sideBarResizeRafId = null; }
         resizeHandle.classList.remove('active');
         sidebar.classList.add('animating');
         document.body.style.cursor = '';
