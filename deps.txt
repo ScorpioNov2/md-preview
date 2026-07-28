@@ -30,3 +30,5 @@
 [svg-pan-zoom](https://unpkg.com/svg-pan-zoom@3.6.2/dist/)
 [markdown-it-svg-render](ask/google)
 [markdown-it-frontmatter](ask/claude)
+[md-editor-shortcuts.js](ask/claude + google)
+[md-editor-undo.js](ask/claude)

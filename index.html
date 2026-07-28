@@ -1361,34 +1361,37 @@
     </div>
   </div>
 
-  <script src="js/markdown-it.min.js"></script>
-  <script src="js/katex.min.js"></script>
-  <script src="js/markdown-it-katex.js"></script>
-  <script src="js/highlight.min.js"></script>
-  <script src="js/markdown-it-task-lists.min.js"></script>
-  <script src="js/markdown-it-code-copy.js"></script>
-  <script src="js/markdown-it-anchor.umd.js"></script>
-  <script src="js/markdown-it-toc-done-right.umd.js"></script>
-  <script src="js/markdown-it-emoji.min.js"></script>
-  <script src="js/markdown-it-mark.min.js"></script>
-  <script src="js/markdown-it-container.min.js"></script>
-  <script src="js/markdown-it-container.min.js"></script>
-  <script src="js/markdown-it-footnote.min.js"></script>
-  <script src="js/markdown-it-sub.min.js"></script>
-  <script src="js/markdown-it-sup.min.js"></script>
-  <script src="js/markdown-it-abbr.min.js"></script>
-  <script src="js/markdown-it-deflist.min.js"></script>
-  <script src="js/mermaid-it-markdown.js"></script>
-  <script src="js/mermaid.min.js"></script>
-  <script src="js/markdown-it-kbd.js"></script>
-  <script src="js/markdown-it-ins.min.js"></script>
-  <script src="js/markdown-it-external-links.js"></script>
-  <script src="js/markdown-it-implicit-figures.js"></script>
-  <script src="js/purify.min.js"></script>
-  <script src="js/markdown-it-video.js"></script>
-  <script src="js/svg-pan-zoom.min.js"></script>
-  <script src="js/markdown-it-svg-render.js"></script>
-  <script src="js/markdown-it-frontmatter.umd.js"></script>
+  <script src="js/plugins/markdown-it.min.js"></script>
+  <script src="js/plugins/katex.min.js"></script>
+  <script src="js/plugins/markdown-it-katex.js"></script>
+  <script src="js/plugins/highlight.min.js"></script>
+  <script src="js/plugins/markdown-it-task-lists.min.js"></script>
+  <script src="js/plugins/markdown-it-code-copy.js"></script>
+  <script src="js/plugins/markdown-it-anchor.umd.js"></script>
+  <script src="js/plugins/markdown-it-toc-done-right.umd.js"></script>
+  <script src="js/plugins/markdown-it-emoji.min.js"></script>
+  <script src="js/plugins/markdown-it-mark.min.js"></script>
+  <script src="js/plugins/markdown-it-container.min.js"></script>
+  <script src="js/plugins/markdown-it-container.min.js"></script>
+  <script src="js/plugins/markdown-it-footnote.min.js"></script>
+  <script src="js/plugins/markdown-it-sub.min.js"></script>
+  <script src="js/plugins/markdown-it-sup.min.js"></script>
+  <script src="js/plugins/markdown-it-abbr.min.js"></script>
+  <script src="js/plugins/markdown-it-deflist.min.js"></script>
+  <script src="js/plugins/mermaid-it-markdown.js"></script>
+  <script src="js/plugins/mermaid.min.js"></script>
+  <script src="js/plugins/markdown-it-kbd.js"></script>
+  <script src="js/plugins/markdown-it-ins.min.js"></script>
+  <script src="js/plugins/markdown-it-external-links.js"></script>
+  <script src="js/plugins/markdown-it-implicit-figures.js"></script>
+  <script src="js/plugins/purify.min.js"></script>
+  <script src="js/plugins/markdown-it-video.js"></script>
+  <script src="js/plugins/svg-pan-zoom.min.js"></script>
+  <script src="js/plugins/markdown-it-svg-render.js"></script>
+  <script src="js/plugins/markdown-it-frontmatter.umd.js"></script>
+
+  <script src="js/shortcuts/md-editor-shortcuts.js"></script>
+  <script src="js/shortcuts/md-editor-undo.js"></script>
 
   <script>
     if (window.mermaid) {
@@ -1764,8 +1767,7 @@
       }
 
       input.addEventListener('scroll', function () { scheduleGutterUpdate(); });
-      // input.addEventListener('input', function () { updatePreview(); scheduleGutterUpdate(); });
-      input.addEventListener('input', function () { scheduleGutterUpdate(); }); // updatePreview() when completing typing
+      input.addEventListener('input', function () { scheduleGutterUpdate(); }); // updatePreview() 1 time when switch to preview tab
       window.addEventListener('resize', function () {
         _cachedWrapHeights = null;
         _lastWrapVal = '';
@@ -1794,37 +1796,110 @@
       });
 
       /* ====================================================================
-         3. TAB KEY = 4 SPACES
+      3b. PHÍM TẮT SOẠN THẢO (MDEditorShortcuts) + UNDO TỐI ĐA 5 BƯỚC (MDEditorUndo)
+      Logic thật nằm trong 2 file thư viện dùng lại được ở project khác:
+        js/shortcuts/md-editor-shortcuts.js  (move/duplicate line, Ctrl+D, cuộn vào khung nhìn)
+        js/shortcuts/md-editor-undo.js       (undo riêng, không phụ thuộc undo gốc của textarea)
+      Ở đây chỉ còn phần "nối dây": gọi thư viện + quyết định khi nào re-render/lưu undo.
       ==================================================================== */
+
+      // options cho scrollPositionIntoView cần đọc LINE_HEIGHT/wordWrap MỚI NHẤT mỗi lần gọi
+      // (2 giá trị này có thể đổi lúc runtime khi người dùng bật/tắt word-wrap), nên để dạng hàm
+      // trả object thay vì 1 object cố định tạo 1 lần.
+      function getScrollOpts() {
+        return { lineHeight: LINE_HEIGHT, wordWrap: wordWrap, getWrapHeights: measureWrapLineHeights };
+      }
+
+      var undoMgr = MDEditorUndo.createUndoManager(input, {
+        maxSteps: 5,
+        burstDelayMs: 600,
+        onRestore: function () {
+          scheduleGutterUpdate();
+          MDEditorShortcuts.scrollPositionIntoView(input, input.selectionStart, getScrollOpts());
+        }
+      });
+
       input.addEventListener('keydown', function (e) {
+        if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+          e.preventDefault();
+          var dir = e.key === 'ArrowUp' ? 'up' : 'down';
+          var before = undoMgr.getSnapshot(); // phải chụp TRƯỚC vì moveLine/duplicateLine đổi value ngay khi gọi
+          var changed = e.shiftKey ? MDEditorShortcuts.duplicateLine(input, dir) : MDEditorShortcuts.moveLine(input, dir);
+          if (changed) {
+            undoMgr.pushCheckpoint(before);
+            scheduleGutterUpdate();
+            MDEditorShortcuts.scrollPositionIntoView(input, input.selectionStart, getScrollOpts());
+          }
+          return;
+        }
+
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'd' || e.key === 'D')) {
+          e.preventDefault();
+          MDEditorShortcuts.jumpToNextMatch(input); // chỉ đổi selection, không cần re-render preview hay lưu undo
+          return;
+        }
+
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'z' || e.key === 'Z')) {
+          e.preventDefault();
+          undoMgr.undo(); // tự gọi onRestore (re-render + cuộn) nếu có gì để undo
+          return;
+        }
+
+        /* ====================================================================
+          3. TAB KEY = 4 SPACES
+        ==================================================================== */
         if (e.key === 'Tab') {
           e.preventDefault();
+          e.stopPropagation();
           var start = input.selectionStart;
           var end = input.selectionEnd;
           var val = input.value;
 
+          // Tìm vị trí bắt đầu của dòng hiện tại (hoặc dòng đầu tiên trong vùng chọn)
+          var beforeSel = val.substring(0, start);
+          var lineStart = beforeSel.lastIndexOf('\n') + 1;
+
+          // Lấy toàn bộ văn bản của các dòng nằm trong vùng chọn
+          var fullSel = val.substring(lineStart, end);
+          var lines = fullSel.split('\n');
+
           if (e.shiftKey) {
-            var beforeSel = val.substring(0, start);
-            var afterSel = val.substring(end);
-            var lineStart = beforeSel.lastIndexOf('\n') + 1;
-            var fullSel = val.substring(lineStart, end);
-            var lines = fullSel.split('\n');
-            var newLines = lines.map(function (line) {
-              if (line.startsWith('    ')) return line.substring(4);
-              if (line.startsWith('   ')) return line.substring(3);
-              if (line.startsWith('  ')) return line.substring(2);
-              if (line.startsWith(' ')) return line.substring(1);
-              return line;
+            // --- XỬ LÝ SHIFT + TAB (LÙI LỀ ĐẦU DÒNG) ---
+            var firstLineRemovedCount = 0;
+            var totalRemovedCount = 0;
+
+            var newLines = lines.map(function (line, index) {
+              var match = line.match(/^ {1,4}/); // Tìm từ 1 đến 4 khoảng trắng ở đầu dòng
+              var removed = match ? match[0].length : 0;
+
+              totalRemovedCount += removed;
+              if (index === 0) firstLineRemovedCount = removed; // Lưu lại số lượng bị xóa ở dòng đầu tiên
+
+              return line.substring(removed);
             });
+
             var newText = newLines.join('\n');
-            input.value = val.substring(0, lineStart) + newText + afterSel;
-            input.selectionStart = lineStart;
-            input.selectionEnd = lineStart + newText.length;
+            input.value = val.substring(0, lineStart) + newText + val.substring(end);
+
+            // Giữ nguyên vị trí bôi đen/con trỏ chuột và dịch lùi lại tương ứng với số space bị xóa
+            input.selectionStart = Math.max(lineStart, start - firstLineRemovedCount);
+            input.selectionEnd = Math.max(lineStart, end - totalRemovedCount);
+
           } else {
-            input.value = val.substring(0, start) + '    ' + val.substring(end);
-            input.selectionStart = input.selectionEnd = start + 4;
+            // --- XỬ LÝ TAB (THỤT LỀ ĐẦU DÒNG) ---
+            // Luôn luôn thêm 4 khoảng trắng vào ĐẦU mỗi dòng trong vùng chọn
+            var newLines = lines.map(function (line) {
+              return '    ' + line;
+            });
+
+            var newText = newLines.join('\n');
+            input.value = val.substring(0, lineStart) + newText + val.substring(end);
+
+            // Đẩy vùng chọn/con trỏ chuột dịch sang phải tương ứng với số space được thêm vào
+            input.selectionStart = start + 4; // Dòng đầu tiên luôn được thêm 4 space
+            input.selectionEnd = end + (lines.length * 4); // Tổng số space được thêm vào toàn bộ các dòng
           }
-          updatePreview();
+
           scheduleGutterUpdate();
         }
       });
