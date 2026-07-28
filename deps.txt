@@ -29,3 +29,4 @@
 [markdown-it-video@0.6.3](https://cdn.jsdelivr.net/npm/markdown-it-video@0.6.3/) [edited export]
 [svg-pan-zoom](https://unpkg.com/svg-pan-zoom@3.6.2/dist/)
 [markdown-it-svg-render](ask/google)
+[markdown-it-frontmatter](ask/claude)

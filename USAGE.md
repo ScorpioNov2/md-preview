@@ -376,8 +376,9 @@ Press [[Ctrl]] + [[C]] to copy.
 
 ---
 
-## 7. Metadata (Front Matter)
+## 7. Metadata (Front Matter) & Table Plugins
 
+### 7.1. Front Matter Parsing
 Custom processing (`parseFM`), applied when a `---`/`---` block is located **at the beginning of the document**. Each `key: value` line (value can be a string, number, boolean, array/JSON) will be collected and displayed as an **info table** right above the remaining Markdown content:
 
 ```markdown
@@ -389,6 +390,39 @@ published: true
 ---
 
 The main content of the document starts here...
+```
+
+### 7.2. Dynamic Table Code Blocks
+Support for custom ````table```` blocks, which can be placed **at any position within the document**. This allows embedding dynamic or structured tabular data anywhere in the file:
+
+```markdown
+Here is some text.
+
+```table
+name: gog
+description: "Google Workspace CLI for Gmail, Calendar, Drive, Contacts, Sheets, and Docs."
+homepage: https://gogcli.sh
+metadata:
+  {
+    "openclaw":
+      {
+        "emoji": "🎮",
+        "requires": { "bins": ["gog"] },
+        "install":
+          [
+            {
+              "id": "brew",
+              "kind": "brew",
+              "formula": "gogcli",
+              "bins": ["gog"],
+              "label": "Install gog (brew)",
+            },
+          ],
+      },
+  }
+`` `
+
+More content continues down here...
 ```
 
 ---
