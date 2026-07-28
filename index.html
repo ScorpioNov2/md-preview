@@ -2004,7 +2004,14 @@
             sidebar.style.maxWidth = prevSidebarWidth;
           }
         }
-        setTimeout(function () { _cachedWrapHeights = null; _lastWrapVal = ''; scheduleGutterUpdate(); }, 200);
+
+        setTimeout(function () {
+          _cachedWrapHeights = null;
+          _lastWrapVal = '';
+          /* Trigger window resize event to update mermaid preview not all element like heavy updatePreview() */
+          window.dispatchEvent(new Event('resize')); // run instantly
+          scheduleGutterUpdate();
+        }, 200);
       });
 
       btnOpenFile.addEventListener('click', function () { filePicker.click(); });
