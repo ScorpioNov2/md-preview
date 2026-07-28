@@ -1051,7 +1051,6 @@
       height: 600px;
       border-radius: 6px;
       cursor: grab;
-      margin: 20px 0;
     }
 
     .mermaid-zoom-container:active {
@@ -1113,28 +1112,19 @@
 
 
       /* ==== Vibrant Mesh Slanted ==== */
-      /* Lớp nền Gradient hồng tím chuyển màu mượt mà */
       background: linear-gradient(135deg,
           rgba(252, 231, 243, 0.6) 0%,
-          /* Hồng phấn */
           rgba(243, 232, 255, 0.6) 50%,
-          /* Tím nhạt */
-          rgba(224, 242, 254, 0.6) 100%
-          /* Xanh dương pastel */
-        );
+          rgba(224, 242, 254, 0.6) 100%);
 
-      /* Gộp 2 lớp sọc chéo vuông góc nhau để tạo lưới kim cương */
       background-image:
-        /* Lớp 1: Sọc chéo góc -45 độ */
         repeating-linear-gradient(-45deg,
           rgba(219, 39, 119, 0.04),
           rgba(219, 39, 119, 0.04) 2px,
           transparent 2px,
           transparent 16px),
-        /* Lớp 2: Sọc chéo góc 45 độ (vuông góc lớp 1) */
         repeating-linear-gradient(45deg,
           rgba(147, 51, 234, 0.04),
-          /* Đổi chút sang ánh tím cho đồng điệu */
           rgba(147, 51, 234, 0.04) 2px,
           transparent 2px,
           transparent 16px);
@@ -1498,7 +1488,8 @@
             // 🎯 1. BẮT ĐÚNG BLOCK MERMAID ĐỂ XUẤT RA THẺ DIV CHỨA TEXT THÔ
             if (lang === 'mermaid') {
               // return `<div class="mermaid-zoom-container"><pre class="mermaid">${md.utils.escapeHtml(str)}</pre></div>`;
-              return `<div class="mermaid-zoom-container"><pre class="mermaid">${str}</pre></div>`; // allow <br>
+              // return `<div class="mermaid-zoom-container"><pre class="mermaid">${str}</pre></div>`; // allow <br>
+              return `<div class="mermaid">${str}</div>`; // allow <br>
             }
 
             if (lang && window.hljs && window.hljs.getLanguage(lang)) {
