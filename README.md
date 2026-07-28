@@ -29,7 +29,7 @@ For an optimal development workflow with automatic page reloads:
 
 ```text
 ├── index.html          # Main application interface
-├── USAGE.md            # The markdown syntax cheatsheet - [Link reference](https://github.com/ScorpioNov2/md-preview/USAGE.md)
+├── USAGE.md            # The markdown syntax cheatsheet
 ├── README.md           # General information about this application
 ├── index.html          # Main application interface
 ├── css/
@@ -38,7 +38,11 @@ For an optimal development workflow with automatic page reloads:
     └── plugins.js      # Markdown-it plugins
 ```
 
-**Source:** [ScorpioNov2/md-preview](https://github.com/ScorpioNov2/md-preview) · Plugin directory: [`/js`](https://github.com/ScorpioNov2/md-preview/tree/main/js) · Main config: [`index.html`](https://github.com/ScorpioNov2/md-preview/blob/main/index.html)
+**Source:** [ScorpioNov2/md-preview](https://github.com/ScorpioNov2/md-preview)  
+· Plugin directory: [`/js/plugins`](https://github.com/ScorpioNov2/md-preview/tree/main/js/plugins) 
+· Shortcut directory: [`/js/shortcuts`](https://github.com/ScorpioNov2/md-preview/tree/main/js/shortcuts) 
+· Main config: [`index.html`](https://github.com/ScorpioNov2/md-preview/blob/main/index.html) 
+· Syntax cheatsheet: [`USAGE.md`](https://github.com/ScorpioNov2/md-preview/USAGE.md)
 
 ## 🛠️ Tech Stack
 

@@ -430,3 +430,29 @@ More content continues down here...
 ## 8. Security Notes
 
 After `markdown-it` finishes rendering, the resulting HTML is passed through **DOMPurify** (configured to block `<script>` tags and `onerror`/`onload`/`onclick`/`onmouseover` attributes) before being displayed. The `<script>` tag typed in Markdown itself is also disabled into plain text during the preprocessing step. This is not a "syntax" in the sense of an added feature, but rather a protective layer ensuring that section [1.10](#110-raw-html) (allowing raw HTML) does not become an XSS vulnerability.
+
+---
+
+## 9.Keyboard Shortcuts & Indentation
+
+The editor supports advanced text manipulation and navigation shortcuts to streamline your markdown editing workflow:
+
+### Line Manipulation
+
+| Shortcut | Action | Description |
+| :--- | :--- | :--- |
+| `Alt` + `↑` | **Move Line Up** | Moves the current line or selected block up by one line. |
+| `Alt` + `↓` | **Move Line Down** | Moves the current line or selected block down by one line. |
+| `Shift` + `Alt` + `↑` | **Duplicate Up** | Duplicates the current line or selected block immediately above. |
+| `Shift` + `Alt` + `↓` | **Duplicate Down** | Duplicates the current line or selected block immediately below. |
+
+### Navigation & History
+
+| Shortcut | Action | Description |
+| :--- | :--- | :--- |
+| `Ctrl / Cmd` + `D` | **Jump to Next Match** | Selects and jumps to the next occurrence of the highlighted text. |
+| `Ctrl / Cmd` + `Z` | **Custom Undo** | Steps back using the internal `UndoManager` to restore previous layouts. |
+
+### Smart Indentation
+* **`Tab` Key**: Prepends **4 spaces** to the beginning of all lines within the active text selection. The cursor and selection boundaries shift smoothly to maintain focus.
+* **`Shift` + `Tab` Key**: Detects and strips between **1 to 4 spaces** from the start of each selected line (outdentation) without breaking text boundaries.
