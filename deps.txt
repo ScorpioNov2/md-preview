@@ -32,3 +32,4 @@
 [markdown-it-frontmatter](ask/claude)
 [md-editor-shortcuts.js](ask/claude + google)
 [md-editor-undo.js](ask/claude)
+[markdown-it-abcjs](https://github.com/paulrosen/abcjs@6.6.4/blob/main/dist/abcjs-basic-min.js)

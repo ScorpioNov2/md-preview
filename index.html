@@ -1210,6 +1210,48 @@
       /* Centers the SVG horizontally */
       margin: 0 auto;
     }
+
+    /* ============================================
+    ABCjs music node svg render
+    ============================================ */
+    /* 1. Ép khung nhạc thành block, căn giữa và giới hạn kích thước */
+    .abcjs-container {
+      display: block !important;
+      position: relative !important;
+      width: 100% !important;
+      /* max-width: 80%; */
+      margin: 20px auto !important;
+      padding-bottom: 0 !important;
+      overflow: hidden !important;
+      height: auto !important;
+    }
+
+    /* 2. Ép thẻ SVG bên trong hoạt động như ảnh bình thường */
+    .abcjs-container svg {
+      position: relative !important;
+      display: block !important;
+      width: 100% !important;
+      height: auto !important;
+      max-width: 100% !important;
+      transform: scale(0.8);
+      transform-origin: top center;
+      margin: 0 auto;
+    }
+
+    /* Đổi cỡ chữ tiêu đề bài hát */
+    /* .abcjs-container svg text[data-name="title"] {
+      font-size: 20px !important;
+    } */
+
+    /* Đổi cỡ chữ hợp âm (chữ phía trên nốt nhạc) */
+    /* .abcjs-container svg text.abcjs-chord {
+      font-size: 12px !important;
+    } */
+
+    /* Đổi cỡ chữ lời bài hát (nếu có) */
+    /* .abcjs-container svg text.abcjs-lyric {
+      font-size: 12px !important;
+    } */
   </style>
 </head>
 
@@ -1389,6 +1431,7 @@
   <script src="js/plugins/svg-pan-zoom.min.js"></script>
   <script src="js/plugins/markdown-it-svg-render.js"></script>
   <script src="js/plugins/markdown-it-frontmatter.umd.js"></script>
+  <script src="js/plugins/markdown-it-abcjs.js"></script>
 
   <script src="js/shortcuts/md-editor-shortcuts.js"></script>
   <script src="js/shortcuts/md-editor-undo.js"></script>
@@ -1613,6 +1656,9 @@
 
         // front matter --- on ther head of file or ```table block
         md.use(window.frontmatter_plugin);
+
+        // abcjs for rendering music node
+        md.use(window.markdownitAbcjs);
       }
 
       /* ====================================================================
@@ -2545,6 +2591,26 @@
         });
 
         preview.innerHTML = htmlResult;
+
+        // 4. Tự động đi tìm các thẻ pre chứa nhạc và vẽ SVG
+        // (Giống hệt cơ chế Mermaid)
+        const musicBlocks = preview.querySelectorAll('pre.abcjs-source');
+        musicBlocks.forEach(function (block) {
+          const codeEl = block.querySelector('code');
+          const abcCode = codeEl ? codeEl.textContent : block.textContent;
+
+          // Tạo một thẻ div mới để ABCJS vẽ vào
+          const renderDiv = document.createElement('div');
+          // Thay thế thẻ pre bằng thẻ div mới
+          block.parentNode.replaceChild(renderDiv, block);
+
+          // Gọi hàm vẽ của ABCJS
+          if (window.ABCJS) {
+            ABCJS.renderAbc(renderDiv, abcCode, {}, { responsive: 'resize' });
+          } else {
+            console.error("Không tìm thấy ABCJS!");
+          }
+        });
 
         // =====================================
         // MERMAID (Đã sửa lỗi Uncaught in Promise, Tích hợp Zoom/Pan & Nền Ô Gạch Caro)
