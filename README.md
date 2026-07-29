@@ -86,5 +86,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 | svg-pan-zoom | 3.6.2 | Drag/zoom Mermaid diagrams |
 | markdown-it-svg-render | Custom | Render `svg` blocks into images |
 | markdown-it-frontmatter | Custom | Render `table` blocks into front matter table |
+| markdown-it-abcjs | 6.6.4 | Render `abc` blocks into SVG music sheets |
 
 *(Data source: the project's [`deps.txt`](https://github.com/ScorpioNov2/md-preview/blob/main/deps.txt) file.)*

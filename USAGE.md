@@ -425,6 +425,59 @@ metadata:
 More content continues down here...
 ```
 
+### 7.3. Music notation
+Support for custom ````abc```` blocks, which can be placed **at any position within the document**. This allows embedding dynamic or structured musical notation anywhere in the file.
+
+```markdown
+Here is some text.
+
+```abc
+X:1
+T:Cooley's Reel (Full Version)
+M:4/4
+L:1/8
+R:Reel
+K:Emin
+
+%%score (1 2)
+V:1 K:Emin g=2
+
+% --- Section A (1st Time) ---
+
+|:D2|EB{B}eB eBGB|EB{B}eB eBGB|A2FA DAFA|A2FA DAFA|
+EB{B}eB eBGB|EB{B}eB eBGB|A2FA DEFA|BFAF E2:|
+
+% --- Section B (1st Time) ---
+
+|:ga|b2gb abge|dega b2gb|a2fa dafa|A2FA DAFA|
+b2gb abge|dega b2gb|A2FA DEFA|BFAF E2:|
+
+% --- Section A Variation (2nd Time) ---
+
+|:GF|E2EB eBGB|E2EB eBGB|A2FA DAFA|BAFA DAFA|
+E2EB eBGB|e2ef gfed|A2FA DEFA|BFAF E2:|
+
+% --- Section B Variation (2nd Time) ---
+
+|:ga|b2eB gBeB|B2ef g2fe|dafa dafa|A2FA DAFA|
+b2eB gBeB|B2ef gfed|A2FA DEFA|BFAF E4:|
+`` `
+
+```abc
+X:1 
+T:Two-voice piece
+M:4/4 
+L:1/8 
+K:Emin 
+%%score (1 2) % This command tells the system to draw voice 1 and voice 2 on the same staff
+V:1 clef=treble % Voice 1 (Right hand - Treble clef) 
+|:D2 EB eB GB|A2 FA DA FA:| 
+V:2 clef=bass % Voice 2 (Left hand - Bass clef) 
+|:A,,2 A,,2 A,,2 A,,2|A,,2 A,,2 A,,2 A,,2:|
+`` `
+```
+
+More content continues down here...
 ---
 
 ## 8. Security Notes
