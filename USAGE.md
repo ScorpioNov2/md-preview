@@ -475,9 +475,10 @@ V:1 clef=treble % Voice 1 (Right hand - Treble clef)
 V:2 clef=bass % Voice 2 (Left hand - Bass clef) 
 |:A,,2 A,,2 A,,2 A,,2|A,,2 A,,2 A,,2 A,,2:|
 `` `
-```
 
 More content continues down here...
+```
+
 ---
 
 ## 8. Security Notes
