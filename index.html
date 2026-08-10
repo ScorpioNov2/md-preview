@@ -91,15 +91,25 @@
     }
 
     .sidebar-title {
-      font-size: 13px;
-      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 6px;
+      flex: 1;
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 0;
+    }
+
+    #sidebar-label {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      min-width: 0;
+      width: 100%;
+    }
+
+    .sidebar-title svg {
+      min-width: 14px;
+      min-height: 14px;
     }
 
     .sidebar-actions {
@@ -504,30 +514,27 @@
     }
 
     .gutter {
-      width: var(--gutter-width);
       min-width: var(--gutter-width);
       background: #f6f8fa;
       border-right: 1px solid var(--border-color);
-      overflow: hidden;
       position: relative;
       user-select: none;
     }
 
     .gutter-inner {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      box-sizing: border-box;
+      padding: 0 8px;
+      width: max-content;
+      min-width: 100%;
       will-change: transform;
     }
 
     .gutter-row {
-      padding: 0 12px 0 0;
+      width: 100%;
       text-align: right;
       font: var(--gutter-font);
       color: #57606a;
       white-space: nowrap;
-      overflow: hidden;
     }
 
     #markdown-input {
@@ -1275,7 +1282,7 @@
     </div>
     <div class="sidebar-header">
       <div class="sidebar-title">
-        <svg viewBox="0 0 16 16" width="16" height="16" fill="#57606a">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="#57606a">
           <path
             d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1Z" />
         </svg>
