@@ -1128,6 +1128,14 @@
           rgba(147, 51, 234, 0.04) 2px,
           transparent 2px,
           transparent 16px);
+
+      /* dots */
+      /* width: 100%;
+      height: 100%;
+      background-color: #ffffff;
+      background-image: radial-gradient(rgba(12, 12, 12, 0.171) 2px, transparent 0);
+      background-size: 30px 30px;
+      background-position: -5px -5px; */
     }
 
     /* ============================================
@@ -1258,7 +1266,7 @@
 <body>
 
   <!-- SIDEBAR -->
-  <div class="sidebar animating drop-zone" id="sidebar">
+  <div class="sidebar animating drop-zone collapsed" id="sidebar">
     <div class="drop-overlay" id="drop-overlay">
       <div class="drop-text" id="drop-text">
         Drop here to load file/folder
@@ -1274,10 +1282,10 @@
         <span id="sidebar-label">File tree</span>
       </div>
       <div class="sidebar-actions">
-        <button class="icon-btn" id="btn-toggle-sidebar" title="Collapse sidebar">
+        <button class="icon-btn" id="btn-toggle-sidebar" title="Expand sidebar">
           <svg viewBox="0 0 16 16" fill="currentColor">
             <path
-              d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25ZM1.75 1.5a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25H5V1.5Zm4.75 13h8a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25h-8Z" />
+              d="M2.5 1H13.5C14.3284 1 15 1.67157 15 2.5V13.5C15 14.3284 14.3284 15 13.5 15H2.5C1.67157 15 1 14.3284 1 13.5V2.5C1 1.67157 1.67157 1 2.5 1ZM2.5 2.5V13.5H5.25V2.5H2.5ZM6.75 13.5H13.5V2.5H6.75V13.5Z" />
           </svg>
         </button>
       </div>
@@ -2107,7 +2115,7 @@
       /* ====================================================================
          6. SIDEBAR COLLAPSE / EXPAND & FILE / FOLDER PICKERS
       ==================================================================== */
-      var sidebarCollapsed = false;
+      var sidebarCollapsed = true;
       var prevSidebarWidth = null;
 
       btnToggleSidebar.addEventListener('click', function () {
